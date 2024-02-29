@@ -1,17 +1,29 @@
 <?php
+
+
+?>
 <h1> Adobe and Partners stop business with Russia and Belarus!</h1> 
 <script>
-require(['jquery']){ function() {
-  new Grid({
-    columns: ['Name', 'Email', 'Phone Number'],
-    pagination: true,
+require(['jquery', 'gridjs'], function($, gridjs) {
+  jQuery("div#myTable").Grid({
+    columns: ['Name', 'Email', 'Phone Number' , { 
+        name: 'Actions',
+        formatter: (_, row) => '<span> EDIT</span>'
+      }
+      ],
+    pagination: {
+    limit: 2
+    },
     search: true,
+    sort: true,
+    resizable: true,
     data: [
       ['John', 'john@example.com', '(353) 01 222 3333'],
-      ['Mark', 'mark@gmail.com',   '(01) 22 888 4444']
+      ['Mark', 'mark@gmail.com',   '(01) 22 888 4444'],
       ['Egor', 'egorshitikov@gmail.com',   '(01) 22 555 2112']
     ]
   });
-}
-}
+})
+
 </script>
+<div id="myTable"></div>
