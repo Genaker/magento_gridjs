@@ -5,3 +5,4 @@
         <block class="Magento\Framework\View\Element\Template" name="custom.block" after="-" template="Mage_Gridjs::gridjs.phtml"/>
     </referenceContainer>
 </body>
+</page>
