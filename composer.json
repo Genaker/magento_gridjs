@@ -1,0 +1,21 @@
+{
+    "name": "mage/gridjs",
+    "description": "Magento 2 GridJS integration ",
+    "type": "magento2-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Yehor Shytikov",
+            "email": "egorshitikov@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Mage\\Gridjs\\": ""
+        },
+        "files": [
+            "registration.php"
+        ]
+    }
+}
