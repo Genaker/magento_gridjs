@@ -97,3 +97,205 @@ $('#example').DataTable({
 
 <table id="example" class="display" width="100%"></table>
 ```
+# More Examples GridJS
+
+## In this examples, we load the data from an existing HTML table
+
+Grid.js can also convert an HTML table. Simply select the table with jQuery and call Grid:
+
+$("table#myTable").Grid();
+
+You can pass all Grid.js configs to the Grid function. See Grid.js Config for more details.
+
+##  HTML in cells 
+
+Then you can use that in formatter function or directly in data array:
+
+
+```
+const grid = new Grid({
+  columns: [
+      { 
+        name: 'Name',
+        formatter: (cell) => html`<b>${cell}</b>`
+      },
+      'Email',
+      { 
+        name: 'Actions',
+        formatter: (_, row) => html`<a href='mailto:${row.cells[1].data}'>Email</a>`
+      },
+   ],
+  data: Array(5).fill().map(x => [
+    faker.name.findName(),
+    faker.internet.email(),
+    null
+  ])
+});
+```
+
+## Import server-side data
+You can use the server property to load data from a remote server and populate the table:
+
+```
+const grid = new Grid({
+  columns: ['Name', 'Language', 'Released At', 'Artist'],
+  server: {
+    url: 'https://api.scryfall.com/cards/search?q=Inspiring',
+    then: data => data.data.map(card => [card.name, card.lang, card.released_at, card.artist])
+  } 
+});
+```
+
+## Server Side Pagination
+Add server property to the pagination config to enable server-side pagination. Also, make sure the total property is correctly defined in the main server config block
+
+```
+const grid = new Grid({
+  columns: ['Pokemon', 'URL'],
+  pagination: {
+    limit: 5,
+    server: {
+      url: (prev, page, limit) => `${prev}?limit=${limit}&offset=${page * limit}`
+    }
+  },
+  server: {
+    url: 'https://pokeapi.co/api/v2/pokemon',
+    then: data => data.results.map(pokemon => [
+      pokemon.name, html(`<a href='${pokemon.url}'>Link to ${pokemon.name}</a>`)
+    ]),
+    total: data => data.count
+  } 
+});
+```
+
+# DataTable example 
+
+## Loading data
+Ajax data is loaded by DataTables simply by using the ajax option to set the URL for where the Ajax request should be made. For example, the following shows a minimal configuration with Ajax sourced data:
+
+```
+$('#myTable').DataTable( {
+    ajax: '/api/myData'
+} );
+```
+
+## JSON data source
+
+When considering Ajax loaded data for DataTables we almost always are referring to a JSON payload - i.e. the data that is returned from the server is in a JSON data structure. This is because the JSON is derived from Javascript and it therefore naturally plays well with Javascript libraries such as DataTables.
+
+## Non-jQuery options
+If you are initialising DataTables through the new DataTable() option available in DataTables 1.11, you can pass configuration options in using the second parameter of the constructor:
+
+```
+new DataTable( '#example', {
+    paging: false,
+    scrollY: 400
+} );
+```
+
+## Data rendering
+Data within DataTables can be easily rendered to add graphics or colour to your tables, as demonstrated in the example on this page. These examples make use of columns.render to customise the cells in three ways:
+![image](https://github.com/Genaker/magento_gridjs/assets/9213670/cb87d61b-e38b-46f4-8b97-f959ac55efd8)
+```
+$('#example').DataTable({
+    ajax: '../ajax/data/objects_salary.txt',
+    columns: [
+        {
+            data: 'name'
+        },
+        {
+            data: 'position',
+            render: function (data, type) {
+                if (type === 'display') {
+                    let link = 'https://datatables.net';
+ 
+                    if (data[0] < 'H') {
+                        link = 'https://cloudtables.com';
+                    }
+                    else if (data[0] < 'S') {
+                        link = 'https://editor.datatables.net';
+                    }
+ 
+                    return '<a href="' + link + '">' + data + '</a>';
+                }
+ 
+                return data;
+            }
+        },
+        {
+            className: 'f32', // used by world-flags-sprite library
+            data: 'office',
+            render: function (data, type) {
+                if (type === 'display') {
+                    let country = '';
+ 
+                    switch (data) {
+                        case 'Argentina':
+                            country = 'ar';
+                            break;
+                        case 'Edinburgh':
+                            country = '_Scotland';
+                            break;
+                        case 'London':
+                            country = '_England';
+                            break;
+                        case 'New York':
+                        case 'San Francisco':
+                            country = 'us';
+                            break;
+                        case 'Sydney':
+                            country = 'au';
+                            break;
+                        case 'Tokyo':
+                            country = 'jp';
+                            break;
+                    }
+ 
+                    return '<span class="flag ' + country + '"></span> ' + data;
+                }
+ 
+                return data;
+            }
+        },
+        {
+            data: 'extn',
+            render: function (data, type, row, meta) {
+                return type === 'display'
+                    ? '<progress value="' + data + '" max="9999"></progress>'
+                    : data;
+            }
+        },
+        {
+            data: 'start_date'
+        },
+        {
+            data: 'salary',
+            render: function (data, type) {
+                var number = $.fn.dataTable.render
+                    .number(',', '.', 2, '$')
+                    .display(data);
+ 
+                if (type === 'display') {
+                    let color = 'green';
+                    if (data < 250000) {
+                        color = 'red';
+                    }
+                    else if (data < 500000) {
+                        color = 'orange';
+                    }
+ 
+                    return (
+                        '<span style="color:' +
+                        color +
+                        '">' +
+                        number +
+                        '</span>'
+                    );
+                }
+ 
+                return number;
+            }
+        }
+    ]
+});
+```
