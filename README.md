@@ -34,7 +34,7 @@ jQuery('#lastOrdersGrid_table').Grid()
 Examples:
 After installation examples will be embedded at the bottom of the admin dashboard 
 
-![image](https://github.com/Genaker/magento_gridjs/assets/9213670/769b0781-802f-44ba-a556-4fb511937cd3)
+![image](https://github.com/Genaker/magento_gridjs/assets/9213670/f0c58b87-f588-4dfa-b576-c5811aa7df46)
 
 ## Source code of the grid
 
