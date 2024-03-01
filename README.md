@@ -1,11 +1,13 @@
-# magento_gridjs
-GridJS and DataTable integration with Magento 2
+# Magento 2 GridJS
+**GridJS** and **DataTable** integration with Magento 2
 
 Grid.js(https://gridjs.io/) is a Free and open-source JavaScript table plugin. It works with most JavaScript frameworks, including React, Angular, Vue and VanillaJs.
 
-DataTable integration with magento 
+Grid.js uses Preact to render the elements and that means that you can take advantage of Preact's Virtual DOM and render complex cells.
 
-DataTables(https://datatables.net/) is a Javascript HTML table-enhancing library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table.
+**DataTable** integration with magento 
+
+**DataTables** (https://datatables.net/) is a Javascript HTML table-enhancing library. It is a highly flexible tool, built upon the foundations of progressive enhancement, that adds all of these advanced features to any HTML table.
 
 At First, GridJS was integrated, but after DataTable was added. 
 
