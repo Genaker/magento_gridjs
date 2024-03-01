@@ -32,7 +32,9 @@ jQuery('#lastOrdersGrid_table').Grid()
 }
 ```
 Examples:
-After installation examples will be embedded at the bottom of the admin dashboard 
+After installation, examples will be embedded at the bottom of the admin dashboard 
+
+![image](https://github.com/Genaker/magento_gridjs/assets/9213670/f5a78899-35be-40be-bfd9-dc3385c56548)
 
 ![image](https://github.com/Genaker/magento_gridjs/assets/9213670/f0c58b87-f588-4dfa-b576-c5811aa7df46)
 
