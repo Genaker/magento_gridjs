@@ -2,6 +2,8 @@
     <head>
         <link src="Mage_Gridjs::js/gridjs.js"/>
         <css src="Mage_Gridjs::css/gridjs.css"/>
+        <!--link src="Mage_Gridjs::js/DataTable.js"/> -->
+        <css src="Mage_Gridjs::css/DataTable.css"/>
     </head>
 
 </page>
