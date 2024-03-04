@@ -1,4 +1,4 @@
-# Magento 2 GridJS
+# Magento 2 GridsJS
 **GridJS** and **DataTable** integration with Magento 2
 
 Grid.js(https://gridjs.io/) is a Free and open-source JavaScript table plugin. It works with most JavaScript frameworks, including React, Angular, Vue and VanillaJs.
