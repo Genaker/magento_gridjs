@@ -13,7 +13,7 @@ At First, GridJS was integrated, but after DataTable was added.
 
 All extensions come as jQuery plugins but can work independently. 
 
-I can also have **AG Grid** integration for Magento 2 but it is not part of this open source solution.
+I also have **AG Grid** integration for Magento 2 but it is not part of this open source solution.
 The Best JavaScript Grid in the World
 The professional choice for developers building enterprise applications
 
