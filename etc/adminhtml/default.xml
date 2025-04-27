@@ -1,17 +1,11 @@
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <head>
-        <!-- <link src="Mage_Gridjs::js/gridjs.js"/>
-        <css src="Mage_Gridjs::css/gridjs.css"/>
-        <link src="Mage_Gridjs::js/DataTable.js"/>
-        <css src="Mage_Gridjs::css/DataTable.css"/> -->
-    </head><!-- view/adminhtml/layout/default.xml -->
+<!-- view/adminhtml/layout/default.xml -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <block class="Mage\Grid\Block\GenericGrid"
-               name="grid_generic_grid"
+               name="grid_subscription_grid"
                template="Mage_Grid::grid/grid-component.phtml">
         <arguments>
             <argument name="viewModel" xsi:type="object">Mage\Grid\ViewModel\GenericViewModelGrid</argument>
-            <argument name="additional_html_template" xsi:type="string">Mage_Grid::grid/your-custom-additional-html.phtml</argument>
             <argument name="collectionClass" xsi:type="string">none</argument>
             <argument name="fields" xsi:type="array">
                 <item name="id" xsi:type="string">ID</item>
@@ -20,6 +14,9 @@
             <argument name="tableName" xsi:type="string">none</argument>
             <argument name="pageSize" xsi:type="number">20</argument>
             <argument name="showFilters" xsi:type="boolean">true</argument>
+            <argument name="additional_html_templates" xsi:type="array">
+                <item name="popupJS" xsi:type="string">Mage_Grid::grid/additional-html.phtml</item>
+            </argument>
         </arguments>
         </block>
     </body>

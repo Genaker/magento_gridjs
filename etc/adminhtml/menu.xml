@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Mage_Grid::grid" 
+             title="Order Grid" 
+             module="Mage_Grid" 
+             sortOrder="10" 
+             parent="Magento_Sales::sales" 
+             action="grid/grid/index" 
+             resource="Magento_Sales::sales"/>
+    </menu>
+</config>

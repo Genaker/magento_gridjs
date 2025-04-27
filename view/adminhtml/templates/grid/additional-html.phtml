@@ -1,0 +1,63 @@
+<script>
+
+var wrapper = document.getElementById('wrapper');
+
+function showPopup(content) {
+    let popup = document.getElementById('grid-popup');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'grid-popup';
+        popup.style.position = 'fixed';
+        popup.style.top = '50%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.background = '#fff';
+        popup.style.border = '2px solid #333';
+        popup.style.zIndex = 10000;
+        popup.style.boxShadow = '0 4px 32px rgba(0,0,0,0.2)';
+        popup.style.borderRadius = '8px';
+        popup.style.minWidth = '320px';
+        popup.style.maxWidth = '90vw';
+        popup.style.maxHeight = '80vh';
+        popup.style.overflow = 'auto';
+        document.body.appendChild(popup);
+    }
+    popup.innerHTML = content + '<div style="text-align:right;padding:8px;"><button id="close-popup" style="padding:6px 16px;">Close</button></div>';
+    popup.style.display = 'block';
+    document.getElementById('close-popup').onclick = function() {
+        popup.style.display = 'none';
+    };
+}
+
+function attachStatusBadgePopup() {
+    var wrapper = document.getElementById('wrapper');
+    if (!wrapper) return;
+    // Remove any previous listener to avoid duplicates
+    wrapper.removeEventListener('click', statusBadgeHandler);
+    wrapper.addEventListener('click', statusBadgeHandler);
+}
+
+function statusBadgeHandler(e) {
+    const badge = e.target.closest('.status-badge');
+    if (badge) {
+        e.preventDefault();
+        const rowData = JSON.parse(badge.getAttribute('data-row'));
+        let htmlContent = '<div style="padding:16px;"><h3>Row Details</h3><table style="border-collapse:collapse;">';
+        Object.entries(rowData).forEach(([key, value]) => {
+            value = String(value).replace(/[a-zA-Z0-9]/g, '*');
+            htmlContent += `<tr><td style="font-weight:bold;padding:4px 8px;border:1px solid #ccc;">${key}</td><td style="padding:4px 8px;border:1px solid #ccc;">${value}</td></tr>`;
+        });
+        htmlContent += '</table></div>';
+        showPopup(htmlContent);
+    }
+}
+
+// Call once on page load
+attachStatusBadgePopup();
+
+// If using Grid.js, re-attach after every update
+if (window.grid) {
+    grid.on('ready', attachStatusBadgePopup);
+    grid.on('update', attachStatusBadgePopup);
+}
+</script>

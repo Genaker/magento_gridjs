@@ -6,4 +6,4 @@
 
 use Magento\Framework\Component\ComponentRegistrar;
 
-ComponentRegistrar::register(ComponentRegistrar::MODULE, 'Mage_Gridjs', __DIR__);
+ComponentRegistrar::register(ComponentRegistrar::MODULE, 'Mage_Grid', __DIR__);

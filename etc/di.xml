@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Mage\Grid\Block\GenericGrid">
+        <arguments>
+            <argument name="defaultViewModel" xsi:type="object">Mage\Grid\ViewModel\GenericViewModelGrid</argument>
+        </arguments>
+    </type>
+    <type name="Mage\Grid\ViewModel\GenericViewModelGrid">
+        <arguments>
+            <argument name="defaultProcessor" xsi:type="object">Mage\Grid\Model\DataProcessor\DefaultProcessor</argument>
+            <argument name="dataProcessors" xsi:type="array">
+                <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
+                <item name="customer_email" xsi:type="object">Mage\Grid\Model\DataProcessor\ObfuscateProcessor</item>
+                <item name="increment_id" xsi:type="object">Mage\Grid\Model\DataProcessor\ObfuscateProcessor</item>
+                <item name="created_at" xsi:type="object">Mage\Grid\Model\DataProcessor\DateProcessor</item>
+                <item name="updated_at" xsi:type="object">Mage\Grid\Model\DataProcessor\DateProcessor</item>
+                <item name="price" xsi:type="object">Mage\Grid\Model\DataProcessor\PriceProcessor</item>
+                <item name="grand_total" xsi:type="object">Mage\Grid\Model\DataProcessor\PriceProcessor</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Chain Processor Configuration -->
+    <type name="Mage\Grid\Model\DataProcessor\ChainProcessor">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+             
+            </argument>
+        </arguments>
+    </type>
+</config>

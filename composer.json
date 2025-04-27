@@ -1,6 +1,6 @@
 {
-    "name": "mage/gridjs",
-    "description": "Magento 2 GridJS integration ",
+    "name": "mage/grid",
+    "description": "Magento 2 custom React GridJS integration ",
     "type": "magento2-module",
     "license": "MIT",
     "authors": [
@@ -12,7 +12,7 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "Mage\\Gridjs\\": ""
+            "Mage\\Grid\\": ""
         },
         "files": [
             "registration.php"

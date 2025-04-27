@@ -1,0 +1,210 @@
+<?php
+// Mage Grid Component Template
+//
+// This template renders the main grid UI using Grid.js (https://gridjs.io/docs)
+// It is designed for maximum flexibility, AI-driven extension, and easy customization.
+//
+// Key features:
+// - Dynamic field and filter rendering
+// - AJAX data loading and server-side pagination
+// - Customizable columns and cell formatters
+// - Integration with additional HTML/JS templates (see $block->getAditionalHTML())
+//
+// For full Grid.js documentation and advanced configuration, see:
+// https://gridjs.io/docs
+
+// $block is an instance of Mage\Grid\Block\GenericGrid
+
+$fields = $block->getFieldNames(); // array: ['id', 'order_number', ...]
+$fieldsFull = $block->getFields(); // associative array: ['id' => 'ID', ...]
+$jsonGridData = $block->getGridJsonData(); // JSON-encoded grid data
+$tableName = $block->getTableName();
+$aditionalHTML = $block->getAditionalHTML();
+?>
+
+<div id="grid-wrapper">
+    <!-- Filter inputs for each field (auto-generated) -->
+    <div id="filter-wrapper">
+        <?php foreach ($fields as $field): ?>
+            <?php
+            $filters = $this->getRequest()->getParam('filter', []);
+            $filterValue = isset($filters[$field]) ? $filters[$field] : '';
+            ?>
+            <input type="text" id="filter-<?php echo $field; ?>" placeholder="Filter by <?php echo ucwords(str_replace('_', ' ', $field)); ?>" value="<?php echo htmlspecialchars($filterValue, ENT_QUOTES, 'UTF-8'); ?>">
+        <?php endforeach; ?>
+        <button id="filter-submit">Filter</button>
+        <button id="filter-clear">Clear</button>
+    </div>
+
+    <!-- Main grid container (Grid.js will render here) -->
+    <div id="wrapper"></div>
+
+    <!-- Grid.js CSS theme -->
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+
+    <!-- Grid.js initialization and configuration -->
+    <script type="module">
+        import {
+            Grid,
+            html
+        } from 'https://unpkg.com/gridjs/dist/gridjs.module.js';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // NOTE: gridData is loaded via AJAX in the server config below
+            const gridData = [];
+
+            // Read pagination and filter state from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const defaultLimit = parseInt(urlParams.get('limit')) || 40;
+            const defaultPage = parseInt(urlParams.get('page')) || 1;
+            const totalCount = 0;
+            const columnsHeader = <?php echo json_encode(array_map('ucwords', str_replace('_', ' ', $fields))); ?>;
+            const columnFilters = <?php echo json_encode($fields); ?>;
+
+            // List of fields that should be rendered as HTML (customize as needed)
+            const htmlFields = ['Grand Total', 'Status'];
+
+            // Define columns for Grid.js, using HTML formatter for special fields
+            const gridColumns = columnsHeader.map(col => {
+                if (htmlFields.includes(col)) {
+                    return {
+                        name: col,
+                        formatter: cell => {
+                            if (!cell) return '';
+                            return html(cell);
+                        }
+                    };
+                }
+                return col;
+            });
+
+            // Initialize Grid.js with server-side data loading and pagination
+            const grid = new Grid({
+                columns: gridColumns,
+                data: gridData, // Will be replaced by AJAX
+                pagination: {
+                    enabled: true,
+                    limit: defaultLimit,
+                    resetPageOnUpdate: true,
+                    page: defaultPage,
+                    total: totalCount, // Will be set by server response
+                    server: {
+                        url: (prev, page, limit) => {
+                            // Compose AJAX URL for server-side pagination
+                            let curentUrl = window.location.href;
+                            const delimeter = curentUrl.includes('?') ? '&' : '?';
+                            let url = `${prev}${delimeter}limit=${limit}&offset=${page * limit}&data=true`;
+                            return url;
+                        }
+                    }
+                },
+                server: {
+                    url: window.location.href,
+                    then: data => {
+                        // Handle server response and errors
+                        if (data.error) {
+                            console.error('Error in grid data:', data.error);
+                            return [];
+                        }
+                        if (!data || !data.data) {
+                            console.error('Error: Invalid data structure received', data);
+                            return [];
+                        }
+                        console.log(data.data);
+                        return data.data;
+                    },
+                    total: data => {
+                        if (!data.total) {
+                            console.error('Error: Invalid total count received', data);
+                            return 0;
+                        }
+                        return data.total;
+                    }
+                },
+                sort: true,
+                search: true,
+                resizable: true
+            }).render(document.getElementById('wrapper'));
+
+            // --- Filter and UI event handling ---
+
+            // Apply filters to the URL (does not reload data automatically)
+            function applyFilters() {
+                const url = new URL(window.location.href);
+                const filters = {};
+                let value = null;
+                columnFilters.forEach(field => {
+                    value = document.getElementById('filter-' + field).value;
+                    if (value) {
+                        filters[field] = value.toLowerCase();
+                        url.searchParams.set('filter[' + field + ']', value); // Use array format
+                    } else {
+                        url.searchParams.delete('filter[' + field + ']');
+                    }
+                });
+                // Update the URL with filter parameters
+                window.history.replaceState(null, '', url.toString());
+            }
+
+            // Add event listeners for filter inputs and buttons
+            let input = null;
+            columnFilters.forEach(field => {
+                input = document.getElementById('filter-' + field);
+                input.addEventListener('input', applyFilters);
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        window.location.href = window.location.href;
+                    }
+                });
+            });
+
+            document.getElementById('filter-submit').addEventListener('click', function() {
+                window.location.href = window.location.href;
+            });
+
+            document.getElementById('filter-clear').addEventListener('click', function() {
+                columnFilters.forEach(field => {
+                    document.getElementById('filter-' + field).value = '';
+                });
+                const url = new URL(window.location.href);
+                columnFilters.forEach(field => {
+                    url.searchParams.delete('filter[' + field + ']');
+                });
+                window.location.href = url.toString();
+            });
+
+            // Page size dropdown
+            document.getElementById('pageSize').addEventListener('change', function() {
+                const newLimit = parseInt(this.value, 10);
+                const url = new URL(window.location.href);
+                url.searchParams.set('limit', newLimit);
+                window.location.href = url.toString();
+            });
+
+            // Update URL with current page on pagination change
+            grid.on('pagination:changed', function(page) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('page', page);
+                window.history.replaceState(null, '', url.toString());
+            });
+            if (document.getElementById("pageSize")) {
+                document.getElementById("pageSize").value = defaultLimit;
+            }
+        });
+    </script>
+
+    <!-- Dropdown for selecting page size -->
+    <div>
+        <label for="pageSize">Show per page:</label>
+        <select id="pageSize">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="40">40</option>
+            <option value="100">100</option>
+        </select>
+        <label for="totalCount"></label>
+    </div>
+</div> <!-- end of grid-wrapper -->
+
+<!-- Render any additional HTML/JS templates configured via layout XML -->
+<?= $block->getAditionalHTML() ?>
