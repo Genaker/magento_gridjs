@@ -1,4 +1,5 @@
 <?php
+
 namespace Mage\Grid\Block;
 
 use Magento\Backend\Block\Template;
@@ -75,22 +76,7 @@ class GenericGrid extends Template
         $this->messageManager = $messageManager;
         // Use provided ViewModel or fallback to default
         $this->viewModel = $this->getData('viewModel') ?: $defaultViewModel;
-        $this->collectionClass = $this->getData('collectionClass');
 
-        $this->tableName = $this->getData('tableName');
-        // If a collection class is set, ignore table name
-        if ($this->collectionClass !== 'none') {
-            $this->tableName = null;
-        }
-        // Set collection class in ViewModel if provided
-        if ($this->collectionClass !== 'none') {
-            $this->viewModel->setCollectionClass($this->collectionClass);
-        }
-        // Require at least one data source
-        if ($this->tableName === 'none' && $this->collectionClass === 'none') {
-            $this->messageManager->addErrorMessage('Mage Grid: Collection class or table name is required');
-            throw new \Exception('Mage Grid: Collection class or table name is required');
-        }
         // Set up fields and field names
         $this->fields = $this->getData('fields') ?: ['id' => 'ID'];
         $this->viewModel->setFields(array_keys($this->fields));
@@ -135,11 +121,36 @@ class GenericGrid extends Template
     }
 
     /**
+     * Lazy load the collection class
+     */
+    function lazyLoadCollectionClass()
+    {
+        $this->collectionClass = $this->getData('collectionClass');
+
+        $this->tableName = $this->getData('tableName');
+        // If a collection class is set, ignore table name
+        if ($this->collectionClass !== 'none') {
+            $this->tableName = null;
+        }
+        // Set collection class in ViewModel if provided
+        if ($this->collectionClass !== 'none') {
+            $this->viewModel->setCollectionClass($this->collectionClass);
+        }
+        // Require at least one data source
+        if ($this->tableName === 'none' && $this->collectionClass === 'none') {
+            $this->messageManager->addErrorMessage('Mage Grid: Collection class or table name is required');
+            throw new \Exception('Mage Grid: Collection class or table name is required');
+        }
+    }
+
+    /**
      * Get the grid data as JSON (for Grid.js)
      * @return string JSON-encoded data
      */
     public function getGridJsonData()
     {
+        $this->lazyLoadCollectionClass();
+
         return $this->viewModel->getJsonGridData($this->getFieldNames());
     }
 

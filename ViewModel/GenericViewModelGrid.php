@@ -203,6 +203,7 @@ class GenericViewModelGrid implements ArgumentInterface
             if ($this->getSqlQuery($fields, $filters)) {
                 return $this->executeSqlQuery();
             }
+
             /* @var $collection AbstractCollection */
             $collection = $this->getCollection();
 
@@ -258,7 +259,7 @@ class GenericViewModelGrid implements ArgumentInterface
     {
         $result = [];
         // If AJAX request, output JSON and exit
-        if (strtolower($this->request->getParam('data','false')) === 'true') {
+        if (strtolower($this->request->getParam('data', 'false')) === 'true') {
             try {
                 $result = $this->getGridData($fields, $filters);
 
@@ -273,7 +274,7 @@ class GenericViewModelGrid implements ArgumentInterface
         if (!$this->isAjax) {
             $result = $this->getGridData($fields, $filters);
         }
-        
+
         return json_encode($result);
     }
 
@@ -303,7 +304,7 @@ class GenericViewModelGrid implements ArgumentInterface
                 return $value;
             }, $fields);
         }, $data);
-        
+
         $totalCount = $this->getTotalCount();
         $result = ['data' => $jsonData, 'total' => $totalCount];
         return $result;
@@ -500,16 +501,16 @@ class GenericViewModelGrid implements ArgumentInterface
     {
         $fields = $this->getFields();
         $jsonGridData = $this->getJsonGridData($fields);
-        
+
         if (isset($jsonGridData['error']) && $jsonGridData['error']) {
             return '<div class="message message-error">' . $jsonGridData['message'] . '</div>';
         }
-        
+
         $gridHtml = $this->layout->createBlock('Magento\Framework\View\Element\Template')
-        ->setTemplate('Mage_Grid::grid/grid-component.phtml')
-        ->setData('jsonGridData', $jsonGridData)
-        ->setData('fields', $fields)
-        ->toHtml();
+            ->setTemplate('Mage_Grid::grid/grid-component.phtml')
+            ->setData('jsonGridData', $jsonGridData)
+            ->setData('fields', $fields)
+            ->toHtml();
 
         return $gridHtml;
     }
@@ -535,7 +536,7 @@ class GenericViewModelGrid implements ArgumentInterface
     {
         // Get the processor for the field, or default
         $processor = $this->dataProcessors[$field] ?? null;
-       
+
         return $processor;
     }
 }
