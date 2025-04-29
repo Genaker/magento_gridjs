@@ -6,11 +6,15 @@
  */
 
 // Extract the data passed from the main template
+$filterData = $block->getFilterData();
 extract($filterData);
+//dd($fields);
 ?>
 <div id="filter-wrapper">
     <div class="filters-row">
-        <?php foreach ($fields as $field => $config): ?>
+        <?php foreach ($fields as $field => $config):
+            if ($config['hidden']) continue;
+        ?>
             <div class="filter-field">
                 <label for="filter-<?php echo $field; ?>"><?php echo $config['label']; ?></label>
                 <?php if ($config['element'] === 'select'): ?>
@@ -177,7 +181,7 @@ extract($filterData);
         function getUrlParams() {
             var params = {};
             var searchParams = new URLSearchParams(window.location.search);
-            
+
             for (const [key, value] of searchParams.entries()) {
                 // Handle array parameters (filter[field][])
                 var matches = key.match(/^([^\[]+)\[([^\]]+)\](\[\])?/);
@@ -199,17 +203,17 @@ extract($filterData);
             var fieldName = $select.attr('id').replace('filter-', '');
             var params = getUrlParams();
             var values = [];
-            
+
             // Ensure we have an array of values
             if (params.filter && params.filter[fieldName]) {
-                values = Array.isArray(params.filter[fieldName]) 
-                    ? params.filter[fieldName] 
-                    : [params.filter[fieldName]];
+                values = Array.isArray(params.filter[fieldName]) ?
+                    params.filter[fieldName] :
+                    [params.filter[fieldName]];
             }
-            
+
             // Deselect all options first
             $select.find('option').prop('selected', false);
-            
+
             if (values.length) {
                 // Select all values from URL
                 values.forEach(function(value) {
@@ -221,7 +225,7 @@ extract($filterData);
                 // If no values, select "Any"
                 $select.find('option[value=""]').prop('selected', true);
             }
-            
+
             updateMultiselectLabel($select);
         }
 
@@ -236,11 +240,11 @@ extract($filterData);
             var $select = $(this);
             var $options = $select.find('option');
             var $anyOption = $options.first();
-            
+
             // If "Any" is selected, deselect others
             if ($anyOption.is(':selected')) {
                 $options.not($anyOption).prop('selected', false);
-            } 
+            }
             // If no options are selected, select "Any"
             else if ($options.filter(':selected').length === 0) {
                 $anyOption.prop('selected', true);
@@ -249,7 +253,7 @@ extract($filterData);
             else {
                 $anyOption.prop('selected', false);
             }
-            
+
             updateMultiselectLabel($select);
             applyFilters();
         });
@@ -273,15 +277,15 @@ extract($filterData);
             var selectedOptions = $select.find('option:selected').map(function() {
                 return $(this).text();
             }).get();
-            
-            var label = selectedOptions.length === 1 && selectedOptions[0] === 'Any' 
-                ? 'Any'
-                : selectedOptions.join(', ');
-            
+
+            var label = selectedOptions.length === 1 && selectedOptions[0] === 'Any' ?
+                'Any' :
+                selectedOptions.join(', ');
+
             if (!selectedOptions.length) {
                 label = 'Any';
             }
-            
+
             $select.siblings('.multiselect-selected').text(label);
         }
 
@@ -303,7 +307,7 @@ extract($filterData);
         function applyFilters() {
             const url = new URL(window.location.href);
             const fieldNames = <?php echo json_encode(array_keys($fields)); ?>;
-            
+
             fieldNames.forEach(field => {
                 const filterElement = document.getElementById('filter-' + field);
                 if (filterElement) {
@@ -327,7 +331,7 @@ extract($filterData);
                     }
                 }
             });
-            
+
             window.history.replaceState(null, '', url.toString());
         }
 
@@ -367,17 +371,11 @@ extract($filterData);
                     url.searchParams.delete(`filter[${field}][]`);
                 }
             });
-            
+
             window.location.href = url.toString();
         });
 
-        // Page size dropdown
-        document.getElementById('pageSize').addEventListener('change', function() {
-            const newLimit = parseInt(this.value, 10);
-            const url = new URL(window.location.href);
-            url.searchParams.set('limit', newLimit);
-            window.location.href = url.toString();
-        });
+
     });
 </script>
 

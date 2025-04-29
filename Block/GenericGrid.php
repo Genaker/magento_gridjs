@@ -107,9 +107,9 @@ class GenericGrid extends Template
      * Get the field keys (for use in data arrays)
      * @return array
      */
-    public function getFieldNames()
+    public function getFieldsNames()
     {
-        return array_keys($this->fields);
+        return $this->viewModel->getFieldsNames();
     }
 
     /**
@@ -142,24 +142,41 @@ class GenericGrid extends Template
         return $fieldsConfig;
     }
 
+    public function getFieldsHtml()
+    {
+        return $this->viewModel->getFieldsHtml();
+    }
+
+    /**
+     * Get the processed filter fields
+     * @param array $fields
+     * @param array $fieldsConfig
+     * @param array $filters
+     * @return array
+     */
     public function getProcessedFields($fields, $fieldsConfig, $filters)
     {
+    
         foreach ($fields as $field) {
-            $processedFields[$field] = [
-                'label' => isset($fieldsConfig[$field]['label']) 
-                    ? $fieldsConfig[$field]['label'] 
-                    : ucwords(str_replace('_', ' ', $field)),
-                'element' => isset($fieldsConfig[$field]['element']) 
-                    ? $fieldsConfig[$field]['element'] 
-                    : 'text',
-                'data' => isset($fieldsConfig[$field]['data']) 
-                    ? $fieldsConfig[$field]['data'] 
-                    : [],
-                'filter_value' => isset($filters[$field]) 
-                    ? (is_array($filters[$field]) ? $filters[$field] : (string)$filters[$field]) 
-                    : (isset($fieldsConfig[$field]['element']) && 
-                       in_array($fieldsConfig[$field]['element'], ['select', 'multiselect']) ? [] : '')
-            ];
+                $processedFields[$field] = [
+                    'config' => isset($fieldsConfig[$field]) ? $fieldsConfig[$field] : [],
+                    'hidden' => isset($fieldsConfig[$field]['hidden'])
+                        ? $fieldsConfig[$field]['hidden']
+                        : false,
+                    'label' => isset($fieldsConfig[$field]['label'])
+                        ? $fieldsConfig[$field]['label']
+                        : ucwords(str_replace('_', ' ', $field)),
+                    'element' => isset($fieldsConfig[$field]['element'])
+                        ? $fieldsConfig[$field]['element']
+                        : 'text',
+                    'data' => isset($fieldsConfig[$field]['data'])
+                        ? $fieldsConfig[$field]['data']
+                        : [],
+                    'filter_value' => isset($filters[$field])
+                        ? (is_array($filters[$field]) ? $filters[$field] : (string)$filters[$field])
+                        : (isset($fieldsConfig[$field]['element']) &&
+                            in_array($fieldsConfig[$field]['element'], ['select', 'multiselect']) ? [] : '')
+                ];
         }
         return $processedFields;
     }
@@ -195,7 +212,7 @@ class GenericGrid extends Template
     {
         $this->lazyLoadCollectionClass();
 
-        return $this->viewModel->getJsonGridData($this->getFieldNames());
+        return $this->viewModel->getJsonGridData(array_keys($this->getFieldsNames()));
     }
 
     /**
@@ -259,5 +276,18 @@ class GenericGrid extends Template
     public function getCurrentFilters()
     {
         return $this->getRequest()->getParam('filter', []);
+    }
+
+    /**
+     * Get rendered filters HTML
+     *
+     * @return string
+     */
+    public function getFiltersHtml($filterData): string
+    {   
+        return $this->getLayout()
+            ->createBlock(\Mage\Grid\Block\Grid\Filters::class)
+            ->setFilterData($filterData)
+            ->toHtml();
     }
 }

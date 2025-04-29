@@ -11,10 +11,10 @@
                template="Mage_Grid::grid/grid-component.phtml">
         <arguments>
             <argument name="viewModel" xsi:type="object">Mage\Grid\ViewModel\GenericViewModelGrid</argument>
-            <argument name="additional_html_template" xsi:type="string">Mage_Grid::grid/your-custom-additional-html.phtml</argument>
+            <argument name="additional_html_template" xsi:type="string">Mage_Grid::grid/additional-html.phtml</argument>
             <argument name="collectionClass" xsi:type="string">none</argument>
             <argument name="fields" xsi:type="array">
-                <item name="id" xsi:type="string">ID</item>
+                <item name="id" element="select" xsi:type="string">ID</item>
                 <!-- Add more fields as needed -->
             </argument>
             <argument name="tableName" xsi:type="string">none</argument>

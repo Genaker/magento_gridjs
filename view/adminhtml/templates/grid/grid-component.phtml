@@ -13,30 +13,30 @@
 // For full Grid.js documentation and advanced configuration, see:
 // https://gridjs.io/docs
 
-$fields = $block->getFieldNames(); // array: ['id', 'order_number', ...]
+$fields = array_keys($block->getFieldsNames()); // array: ['id', 'order_number', ...]
 $fieldsFull = $block->getFields(); // associative array: ['id' => 'ID', ...]
 $jsonGridData = $block->getGridJsonData(); // JSON-encoded grid data
 $fieldsConfig = $block->getFieldsConfig();
 $tableName = $block->getTableName();
+$fieldsNames = $block->getFieldsNames();
 $aditionalHTML = $block->getAditionalHTML();
-
+$fieldsHtml = $block->getFieldsHtml();
 // Get filter values from request
 $filters = $this->getRequest()->getParam('filter', []);
 
 // Process field configurations and filter values
 $processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
 
+
+$filterData = [
+    'fields' => $processedFields,
+    'filters' => $filters
+];
 // Now start rendering the template
 ?>
 <div id="grid-wrapper">
-    <!-- Include filters template with processed data -->
-    <?php 
-    $filterData = [
-        'fields' => $processedFields,
-        'filters' => $filters
-    ];
-    include __DIR__ . '/filters.phtml'; 
-    ?>
+    <!-- Render filters through block method -->
+    <?= $block->getFiltersHtml($filterData) ?>
 
     <!-- Main grid container (Grid.js will render here) -->
     <div id="wrapper"></div>
@@ -69,24 +69,39 @@ $processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
         const defaultLimit = parseInt(urlParams.get('limit')) || 40;
         const defaultPage = parseInt(urlParams.get('page')) || 1;
         const totalCount = 0;
-        const columnsHeader = <?php echo json_encode(array_map('ucwords', str_replace('_', ' ', array_keys($fields)))); ?>;
-        const columnFilters = <?php echo json_encode(array_keys($fields)); ?>;
+        const fieldsConfig = <?php echo json_encode($fieldsConfig); ?>;
+        const fieldsNames = <?php echo json_encode($fieldsNames); ?>;
+        const columnFilters = Object.keys(fieldsNames);
 
         // List of fields that should be rendered as HTML (customize as needed)
-        const htmlFields = ['Grand Total', 'Status'];
+        const htmlFields = <?php echo json_encode($fieldsHtml); ?>;
 
         // Define columns for Grid.js, using HTML formatter for special fields
-        const gridColumns = columnsHeader.map(col => {
-            if (htmlFields.includes(col)) {
-                return {
-                    name: col,
-                    formatter: cell => {
-                        if (!cell) return '';
-                        return html(cell);
+        const gridColumns = columnFilters.map(fieldName => {
+            const config = fieldsConfig[fieldName] || {};
+            // Use the label from fieldsNames
+            const displayName = fieldsNames[fieldName];
+            
+            let columnConfig = {
+                name: displayName,
+                attributes: (cell, row, colIndex) => {
+                    if (config.hidden) {
+                        return {
+                            style: 'display: none !important'
+                        };
                     }
+                    return {};
+                }
+            };
+
+            if (htmlFields.includes(fieldName)) {
+                columnConfig.formatter = cell => {
+                    if (!cell) return '';
+                    return html(cell);
                 };
             }
-            return col;
+
+            return columnConfig;
         });
 
         // Initialize Grid.js with server-side data loading and pagination
@@ -140,6 +155,17 @@ $processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
             const url = new URL(window.location.href);
             url.searchParams.set('page', page);
             window.history.replaceState(null, '', url.toString());
+        });
+
+        //grid.on('rowClick', (...args) => console.log('row: ' + JSON.stringify(args), args));
+        //grid.on('cellClick', (...args) => console.log('cell: ' + JSON.stringify(args), args));
+
+        // Page size dropdown
+        document.getElementById('pageSize').addEventListener('change', function() {
+            const newLimit = parseInt(this.value, 10);
+            const url = new URL(window.location.href);
+            url.searchParams.set('limit', newLimit);
+            window.location.href = url.toString();
         });
 
         if (document.getElementById("pageSize")) {

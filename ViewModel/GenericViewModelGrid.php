@@ -98,6 +98,11 @@ class GenericViewModelGrid implements ArgumentInterface
      */
     public $fields = [];
 
+    /**
+     * @var array List of field keys for the grid that should be rendered as HTML
+     */
+    public $fieldsHtml = [];
+
 
     /**
      * @var array List of field config for the grid
@@ -394,11 +399,23 @@ class GenericViewModelGrid implements ArgumentInterface
                         $this->fields[$key] = $key;
                         $this->fieldsConfig[$key][$key2] = $value;
                     }
+                    if ($key2 === 'html') {
+                        $this->fieldsHtml[] = $key;
+                    }
                 }
             }
         }
         //dd($this->fieldsConfig);
         return $this;
+    }
+
+    /**
+     * Get the fields that should be rendered as HTML
+     * @return array
+     */
+    public function getFieldsHtml()
+    {
+        return $this->fieldsHtml;
     }
 
     /**
@@ -474,6 +491,15 @@ class GenericViewModelGrid implements ArgumentInterface
             }
         }
         return $this;
+    }
+
+    /**
+     * Get the field labels (for display)
+     * @return array
+     */
+    function getFieldsNames()
+    {
+        return $this->fieldsNames;
     }
 
     /**

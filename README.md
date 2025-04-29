@@ -1041,3 +1041,138 @@ if (window.grid) {
 ### Error Handling
 - If a specified template does not exist, a user-friendly error message will be shown in the grid output.
 
+## Filter Types
+
+The Mage Grid module supports several types of filters that can be configured via layout XML:
+
+### Available Filter Types
+
+1. **Text Input Filter**
+```xml
+<item name="customer_email" xsi:type="array">
+    <item name="label" xsi:type="string">Email</item>
+    <item name="element" xsi:type="string">text</item>
+</item>
+```
+- Default filter type
+- Supports partial matching
+- Auto-applies on input change
+- Supports Enter key for immediate filtering
+
+2. **Select Filter**
+```xml
+<item name="status" xsi:type="array">
+    <item name="label" xsi:type="string">Status</item>
+    <item name="element" xsi:type="string">select</item>
+    <item name="source_model" xsi:type="string">Your\Module\Model\Source\Status</item>
+</item>
+```
+- Single-value selection
+- Dropdown interface
+- Supports custom source models
+- "Any" option included by default
+
+3. **Multiselect Filter**
+```xml
+<item name="store_id" xsi:type="array">
+    <item name="label" xsi:type="string">Store</item>
+    <item name="element" xsi:type="string">multiselect</item>
+    <item name="source_model" xsi:type="string">Your\Module\Model\Source\Store</item>
+</item>
+```
+- Multiple value selection
+- Searchable dropdown
+- Supports Ctrl/Cmd for multiple selections
+- "Any" option for clearing selection
+- Built-in search functionality
+- Maintains selected state in URL
+
+### Filter Features
+
+- **Caching**: 
+  - Filter values are cached for better performance
+  - Cache is applied for results > 100 items
+  - 24-hour cache lifetime for filter options
+  - Cache is tagged for easy management
+
+- **URL Integration**:
+  - Filter states are maintained in URL parameters
+  - Supports browser back/forward navigation
+  - Bookmarkable filtered states
+  - Clear all filters functionality
+
+- **UI/UX Features**:
+  - Responsive design
+  - Mobile-friendly dropdowns
+  - Clear visual feedback
+  - Consistent styling with Magento admin
+  - Tooltip hints for usage
+
+### Example Configuration
+
+Full example of filter configuration in layout XML:
+```xml
+<argument name="fields" xsi:type="array">
+    <!-- Text Filter -->
+    <item name="increment_id" xsi:type="array">
+        <item name="label" xsi:type="string">Order #</item>
+        <item name="element" xsi:type="string">text</item>
+    </item>
+    
+    <!-- Select Filter -->
+    <item name="status" xsi:type="array">
+        <item name="label" xsi:type="string">Status</item>
+        <item name="element" xsi:type="string">select</item>
+        <item name="source_model" xsi:type="string">Magento\Sales\Model\Order\Config</item>
+    </item>
+    
+    <!-- Multiselect Filter -->
+    <item name="store_id" xsi:type="array">
+        <item name="label" xsi:type="string">Store View</item>
+        <item name="element" xsi:type="string">multiselect</item>
+        <item name="source_model" xsi:type="string">Magento\Store\Model\System\Store</item>
+    </item>
+</argument>
+```
+
+### Custom Source Model
+
+Example of a custom source model for filters:
+```php
+namespace Your\Module\Model\Source;
+
+use Mage\Grid\Model\Fields\DataSourceInterface;
+use Magento\Framework\App\ResourceConnection;
+
+class CustomSource implements DataSourceInterface
+{
+    protected $resource;
+    
+    public function __construct(ResourceConnection $resource)
+    {
+        $this->resource = $resource;
+    }
+
+    public function getValues($field)
+    {
+        // Your custom logic to fetch values
+        return ['value1', 'value2', 'value3'];
+    }
+}
+```
+
+### JavaScript Events
+
+The grid filters emit several events that you can listen to:
+```javascript
+// Filter change event
+document.addEventListener('grid:filter:change', function(event) {
+    console.log('Filter changed:', event.detail);
+});
+
+// Filter clear event
+document.addEventListener('grid:filter:clear', function(event) {
+    console.log('Filters cleared');
+});
+```
+
