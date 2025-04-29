@@ -2,19 +2,27 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="Mage\Grid\Block\GenericGrid" name="grid_generic_grid">
+            <block class="Mage\Grid\Block\GenericGrid" 
+                   name="grid_generic_grid" 
+                   template="Mage_Grid::grid/grid-component.phtml">
                 <arguments>
                     <argument name="viewModel" xsi:type="object">Mage\Grid\ViewModel\GenericViewModelGrid</argument>
                     <argument name="collectionClass" xsi:type="object">Magento\Sales\Model\ResourceModel\Order\Grid\Collection</argument>
-                    <!-- We are using collectionClass instead of tableName -->
-                    <!--<argument name="tableName" xsi:type="string">sales_order</argument>-->
-                    <!--Or provide your own SQL extending ViewModel -->
                     <argument name="fields" xsi:type="array">
-                        <item name="increment_id" xsi:type="string">Order ID</item>
+                        <item name="increment_id" xsi:type="string">Increment ID</item>
+                        <item name="status" xsi:type="array">
+                            <item name="label" xsi:type="string">Status</item>
+                            <item name="element" xsi:type="string">select</item>
+                            <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
+                        </item>
+                        <item name="store_id" xsi:type="array">
+                            <item name="label" xsi:type="string">Store</item>
+                            <item name="element" xsi:type="string">multiselect</item>
+                            <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
+                        </item>
                         <item name="customer_email" xsi:type="string">Customer Email</item>
                         <item name="created_at" xsi:type="string">Created At</item>
                         <item name="grand_total" xsi:type="string">Grand Total</item>
-                        <item name="status" xsi:type="string">Status</item>
                         <item name="payment_method" xsi:type="string">Payment Method</item>
                     </argument>
                     <argument name="pageSize" xsi:type="number">20</argument>

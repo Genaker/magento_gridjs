@@ -2,6 +2,7 @@
 
 namespace Mage\Grid\Block;
 
+use GuzzleHttp\Promise\Is;
 use Magento\Backend\Block\Template;
 use Magento\Framework\View\Element\Template\Context as FrontendContext; // <-- use this if we need framework grid
 use Magento\Backend\Block\Template\Context as BackendContext; // <-- use this if we need backend grid
@@ -79,8 +80,8 @@ class GenericGrid extends Template
 
         // Set up fields and field names
         $this->fields = $this->getData('fields') ?: ['id' => 'ID'];
-        $this->viewModel->setFields(array_keys($this->fields));
-        $this->viewModel->setFieldsNames(array_values($this->fields));
+        $this->viewModel->setFields($this->fields);
+        $this->viewModel->setFieldsNames($this->fields);
         $this->viewModel->setTableName($this->tableName);
     }
 
@@ -118,6 +119,49 @@ class GenericGrid extends Template
     public function getTableName()
     {
         return $this->tableName;
+    }
+
+    /**
+     * Get the configured fields config
+     * Must be called after getGridJsonData because it depends on the table name
+     * @return array
+     */
+    public function getFieldsConfig()
+    {
+        $fieldsConfig = $this->viewModel->getFieldsConfig();
+        $table = $this->viewModel->getCollection()->getMainTable();
+
+        foreach ($fieldsConfig as $key => $value) {
+            foreach ($value as $key2 => $value2) {
+                if ($key2 === 'source_model' && is_object($value2)) {
+                    $value2->setTableName($table);
+                    $fieldsConfig[$key]['data'] = $value2->getValues($key);
+                }
+            }
+        }
+        return $fieldsConfig;
+    }
+
+    public function getProcessedFields($fields, $fieldsConfig, $filters)
+    {
+        foreach ($fields as $field) {
+            $processedFields[$field] = [
+                'label' => isset($fieldsConfig[$field]['label']) 
+                    ? $fieldsConfig[$field]['label'] 
+                    : ucwords(str_replace('_', ' ', $field)),
+                'element' => isset($fieldsConfig[$field]['element']) 
+                    ? $fieldsConfig[$field]['element'] 
+                    : 'text',
+                'data' => isset($fieldsConfig[$field]['data']) 
+                    ? $fieldsConfig[$field]['data'] 
+                    : [],
+                'filter_value' => isset($filters[$field]) 
+                    ? (is_array($filters[$field]) ? $filters[$field] : (string)$filters[$field]) 
+                    : (isset($fieldsConfig[$field]['element']) && 
+                       in_array($fieldsConfig[$field]['element'], ['select', 'multiselect']) ? [] : '')
+            ];
+        }
+        return $processedFields;
     }
 
     /**
@@ -178,5 +222,42 @@ class GenericGrid extends Template
             $output .= "<!-- aditional html -->" . $this->fetchView($templateFile);
         }
         return $output;
+    }
+
+
+    /**
+     * Get filter value for a specific field
+     *
+     * @param string $field
+     * @param array $filters
+     * @return string|array
+     */
+    protected function getFilterValue($field, $filters)
+    {
+        $fieldsConfig = $this->getFieldsConfig();
+        
+        if (isset($fieldsConfig[$field]['element']) && 
+            in_array($fieldsConfig[$field]['element'], ['select', 'multiselect'])) {
+            // For select/multiselect, keep as array
+            $filterValue = isset($filters[$field]) ? $filters[$field] : [];
+            if (!is_array($filterValue)) {
+                $filterValue = $filterValue ? [$filterValue] : [];
+            }
+        } else {
+            // For text inputs, ensure string
+            $filterValue = isset($filters[$field]) ? (string)$filters[$field] : '';
+        }
+
+        return $filterValue;
+    }
+
+    /**
+     * Get current filter values
+     *
+     * @return array
+     */
+    public function getCurrentFilters()
+    {
+        return $this->getRequest()->getParam('filter', []);
     }
 }

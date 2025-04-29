@@ -1,0 +1,595 @@
+<?php
+
+/**
+ * Grid Filter Template
+ * Uses pre-processed data from the main template
+ */
+
+// Extract the data passed from the main template
+extract($filterData);
+?>
+<div id="filter-wrapper">
+    <div class="filters-row">
+        <?php foreach ($fields as $field => $config): ?>
+            <div class="filter-field">
+                <label for="filter-<?php echo $field; ?>"><?php echo $config['label']; ?></label>
+                <?php if ($config['element'] === 'select'): ?>
+                    <select id="filter-<?php echo $field; ?>"
+                        name="filter[<?php echo $field; ?>]"
+                        class="admin__control-select">
+                        <option value=""><?= __('Any') ?></option>
+                        <?php foreach ($config['data'] as $value): ?>
+                            <option value="<?php echo $value; ?>"
+                                <?php echo $config['filter_value'] === $value ? 'selected' : ''; ?>>
+                                <?php echo $value; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php elseif ($config['element'] === 'multiselect'): ?>
+                    <div class="multiselect-wrapper">
+                        <div class="multiselect-trigger">
+                            <div class="multiselect-selected"><?= __('Any') ?></div>
+                            <div class="multiselect-arrow">▼</div>
+                        </div>
+                        <div class="multiselect-dropdown">
+                            <div class="multiselect-search">
+                                <input type="text" class="multiselect-search-input" placeholder="<?= __('Search...') ?>">
+                            </div>
+                            <div class="multiselect-options">
+                                <label class="multiselect-option">
+                                    <input type="checkbox" value="" class="multiselect-checkbox any-option"
+                                        <?php echo empty($config['filter_value']) ? 'checked' : ''; ?>>
+                                    <span class="multiselect-label"><?= __('Any') ?></span>
+                                </label>
+                                <?php foreach ($config['data'] as $value): ?>
+                                    <label class="multiselect-option">
+                                        <input type="checkbox"
+                                            value="<?php echo $value; ?>"
+                                            class="multiselect-checkbox"
+                                            <?php echo !empty($config['filter_value']) && in_array($value, (array)$config['filter_value']) ? 'checked' : ''; ?>>
+                                        <span class="multiselect-label"><?php echo $value; ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <select id="filter-<?php echo $field; ?>"
+                            name="filter[<?php echo $field; ?>][]"
+                            class="admin__control-multiselect"
+                            multiple
+                            style="display: none;">
+                            <option value=""><?= __('Any') ?></option>
+                            <?php foreach ($config['data'] as $value): ?>
+                                <option value="<?php echo $value; ?>"
+                                    <?php echo !empty($config['filter_value']) && in_array($value, (array)$config['filter_value']) ? 'selected' : ''; ?>>
+                                    <?php echo $value; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php else: ?>
+                    <input type="text"
+                        id="filter-<?php echo $field; ?>"
+                        name="filter[<?php echo $field; ?>]"
+                        class="admin__control-text"
+                        placeholder="<?= __('Filter by %1', $config['label']) ?>"
+                        value="<?php echo htmlspecialchars($config['filter_value'], ENT_QUOTES, 'UTF-8'); ?>">
+                <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+        <div class="filter-actions">
+            <button type="button" id="filter-submit" class="action-primary"><?= __('Filter') ?></button>
+            <button type="button" id="filter-clear" class="action-secondary"><?= __('Clear All') ?></button>
+        </div>
+    </div>
+</div>
+<script>
+    require(['jquery'], function($) {
+        // Handle click on multiselect trigger
+        $(document).on('click', '.multiselect-trigger', function(e) {
+            e.stopPropagation();
+            const $wrapper = $(this).closest('.multiselect-wrapper');
+            $('.multiselect-wrapper').not($wrapper).removeClass('active');
+            $wrapper.toggleClass('active');
+        });
+
+        // Handle checkbox changes
+        $(document).on('change', '.multiselect-checkbox', function() {
+            const $wrapper = $(this).closest('.multiselect-wrapper');
+            const $select = $wrapper.find('.admin__control-multiselect');
+            const $checkboxes = $wrapper.find('.multiselect-checkbox');
+            const $anyCheckbox = $wrapper.find('.any-option');
+
+            if ($(this).hasClass('any-option')) {
+                // If "Any" is checked, uncheck others
+                if (this.checked) {
+                    $checkboxes.not(this).prop('checked', false);
+                }
+            } else {
+                // If other option is checked, uncheck "Any"
+                $anyCheckbox.prop('checked', false);
+            }
+
+            // If no options selected, check "Any"
+            if ($checkboxes.filter(':checked').not('.any-option').length === 0) {
+                $anyCheckbox.prop('checked', true);
+            }
+
+            // Update the hidden select
+            $select.find('option').each(function() {
+                $(this).prop('selected',
+                    $wrapper.find('.multiselect-checkbox[value="' + $(this).val() + '"]').prop('checked')
+                );
+            });
+
+            // Update the display text
+            updateMultiselectLabel($wrapper);
+
+            // Trigger change event on the select
+            $select.trigger('change');
+        });
+
+        // Handle search input
+        $(document).on('input', '.multiselect-search-input', function() {
+            const searchText = $(this).val().toLowerCase();
+            const $options = $(this).closest('.multiselect-dropdown')
+                .find('.multiselect-option:not(:first-child)');
+
+            $options.each(function() {
+                const text = $(this).find('.multiselect-label').text().toLowerCase();
+                $(this).toggle(text.includes(searchText));
+            });
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.multiselect-wrapper').length) {
+                $('.multiselect-wrapper').removeClass('active');
+            }
+        });
+
+        // Update the selected text display
+        function updateMultiselectLabel($wrapper) {
+            const $selected = $wrapper.find('.multiselect-selected');
+            const $checkedBoxes = $wrapper.find('.multiselect-checkbox:checked').not('.any-option');
+
+            if ($checkedBoxes.length === 0 || $wrapper.find('.any-option').prop('checked')) {
+                $selected.text('Any');
+            } else {
+                const labels = $checkedBoxes.map(function() {
+                    return $(this).siblings('.multiselect-label').text();
+                }).get();
+                $selected.text(labels.join(', '));
+            }
+        }
+
+        // Initialize all multiselects
+        $('.multiselect-wrapper').each(function() {
+            updateMultiselectLabel($(this));
+        });
+    });
+</script>
+
+
+<!-- Include filter handling JavaScript -->
+<script>
+    require(['jquery'], function($) {
+        // Function to parse URL parameters
+        function getUrlParams() {
+            var params = {};
+            var searchParams = new URLSearchParams(window.location.search);
+            
+            for (const [key, value] of searchParams.entries()) {
+                // Handle array parameters (filter[field][])
+                var matches = key.match(/^([^\[]+)\[([^\]]+)\](\[\])?/);
+                if (matches) {
+                    var mainKey = matches[1];
+                    var subKey = matches[2];
+                    if (!params[mainKey]) params[mainKey] = {};
+                    if (!params[mainKey][subKey]) params[mainKey][subKey] = [];
+                    params[mainKey][subKey].push(value);
+                } else {
+                    params[key] = value;
+                }
+            }
+            return params;
+        }
+
+        // Initialize multiselect with values from URL
+        function initializeMultiselect($select) {
+            var fieldName = $select.attr('id').replace('filter-', '');
+            var params = getUrlParams();
+            var values = [];
+            
+            // Ensure we have an array of values
+            if (params.filter && params.filter[fieldName]) {
+                values = Array.isArray(params.filter[fieldName]) 
+                    ? params.filter[fieldName] 
+                    : [params.filter[fieldName]];
+            }
+            
+            // Deselect all options first
+            $select.find('option').prop('selected', false);
+            
+            if (values.length) {
+                // Select all values from URL
+                values.forEach(function(value) {
+                    if (value) {
+                        $select.find('option[value="' + value + '"]').prop('selected', true);
+                    }
+                });
+            } else {
+                // If no values, select "Any"
+                $select.find('option[value=""]').prop('selected', true);
+            }
+            
+            updateMultiselectLabel($select);
+        }
+
+        // Initialize all multiselects
+        $('.admin__control-multiselect').each(function() {
+            var $select = $(this);
+            initializeMultiselect($select);
+        });
+
+        // Handle "Any" option in multiselect
+        $('.admin__control-multiselect').on('change', function(e) {
+            var $select = $(this);
+            var $options = $select.find('option');
+            var $anyOption = $options.first();
+            
+            // If "Any" is selected, deselect others
+            if ($anyOption.is(':selected')) {
+                $options.not($anyOption).prop('selected', false);
+            } 
+            // If no options are selected, select "Any"
+            else if ($options.filter(':selected').length === 0) {
+                $anyOption.prop('selected', true);
+            }
+            // If other options are selected, deselect "Any"
+            else {
+                $anyOption.prop('selected', false);
+            }
+            
+            updateMultiselectLabel($select);
+            applyFilters();
+        });
+
+        // Handle click on multiselect
+        $(document).on('click', '.admin__control-multiselect', function(e) {
+            var $select = $(this);
+            $('.admin__control-multiselect').not($select).removeClass('expanded');
+            $select.toggleClass('expanded');
+            e.stopPropagation();
+        });
+
+        // Handle click outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.multiselect-wrapper').length) {
+                $('.admin__control-multiselect').removeClass('expanded');
+            }
+        });
+
+        function updateMultiselectLabel($select) {
+            var selectedOptions = $select.find('option:selected').map(function() {
+                return $(this).text();
+            }).get();
+            
+            var label = selectedOptions.length === 1 && selectedOptions[0] === 'Any' 
+                ? 'Any'
+                : selectedOptions.join(', ');
+            
+            if (!selectedOptions.length) {
+                label = 'Any';
+            }
+            
+            $select.siblings('.multiselect-selected').text(label);
+        }
+
+        // Add event listeners for filter inputs and buttons
+        const fieldNames = <?php echo json_encode(array_keys($fields)); ?>;
+        fieldNames.forEach(field => {
+            const filterInput = document.getElementById('filter-' + field);
+            if (filterInput) {
+                filterInput.addEventListener('input', applyFilters);
+                filterInput.addEventListener('keydown', event => {
+                    if (event.key === 'Enter') {
+                        window.location.href = window.location.href;
+                    }
+                });
+            }
+        });
+
+        // Apply filters to the URL
+        function applyFilters() {
+            const url = new URL(window.location.href);
+            const fieldNames = <?php echo json_encode(array_keys($fields)); ?>;
+            
+            fieldNames.forEach(field => {
+                const filterElement = document.getElementById('filter-' + field);
+                if (filterElement) {
+                    if (filterElement.multiple) {
+                        // Handle multiselect
+                        const selectedOptions = Array.from(filterElement.selectedOptions);
+                        url.searchParams.delete('filter[' + field + '][]');
+                        selectedOptions.forEach(option => {
+                            if (option.value) {
+                                url.searchParams.append('filter[' + field + '][]', option.value);
+                            }
+                        });
+                    } else {
+                        // Handle regular inputs and single selects
+                        const value = filterElement.value;
+                        if (value) {
+                            url.searchParams.set('filter[' + field + ']', value);
+                        } else {
+                            url.searchParams.delete('filter[' + field + ']');
+                        }
+                    }
+                }
+            });
+            
+            window.history.replaceState(null, '', url.toString());
+        }
+
+        // Filter submit button
+        document.getElementById('filter-submit').addEventListener('click', function() {
+            window.location.href = window.location.href;
+        });
+
+        // Clear filters button
+        document.getElementById('filter-clear').addEventListener('click', function() {
+            const fields = <?php echo json_encode($fields); ?>;
+            const url = new URL(window.location.href);
+
+            // Clear all filters and URL parameters
+            Object.entries(fields).forEach(([field, config]) => {
+                const element = document.getElementById('filter-' + field);
+                if (element) {
+                    if (element.classList.contains('admin__control-multiselect')) {
+                        // Clear multiselect
+                        element.querySelectorAll('option').forEach(option => option.selected = false);
+                        element.querySelector('option[value=""]').selected = true;
+                        // Update multiselect display
+                        const wrapper = element.closest('.multiselect-wrapper');
+                        if (wrapper) {
+                            wrapper.querySelector('.multiselect-selected').textContent = '<?= __('Any') ?>';
+                            wrapper.querySelectorAll('.multiselect-checkbox').forEach(checkbox => {
+                                checkbox.checked = checkbox.classList.contains('any-option');
+                            });
+                        }
+                    } else {
+                        // Clear regular input
+                        element.value = '';
+                    }
+
+                    // Clear URL parameters (both array and single value formats)
+                    url.searchParams.delete(`filter[${field}]`);
+                    url.searchParams.delete(`filter[${field}][]`);
+                }
+            });
+            
+            window.location.href = url.toString();
+        });
+
+        // Page size dropdown
+        document.getElementById('pageSize').addEventListener('change', function() {
+            const newLimit = parseInt(this.value, 10);
+            const url = new URL(window.location.href);
+            url.searchParams.set('limit', newLimit);
+            window.location.href = url.toString();
+        });
+    });
+</script>
+
+<style>
+    #filter-wrapper {
+        padding: 1rem;
+        background: #f8f8f8;
+        margin-bottom: 2rem;
+    }
+
+    .filters-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.5rem;
+        align-items: start;
+    }
+
+    .filter-field {
+        position: relative;
+        min-width: 200px;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-field label {
+        display: block;
+        font-weight: 600;
+        white-space: nowrap;
+        margin: 0;
+    }
+
+    .admin__control-select,
+    .admin__control-text {
+        width: 100%;
+        height: 3.2rem;
+        padding: 0.6rem 1rem;
+        border: 1px solid #adadad;
+        border-radius: 2px;
+        background-color: #fff;
+        box-sizing: border-box;
+    }
+
+    .multiselect-wrapper {
+        position: relative;
+        height: 3.2rem;
+    }
+
+    .multiselect-trigger {
+        position: relative;
+        width: 100%;
+        height: 3.2rem;
+        padding: 0.6rem 1rem;
+        border: 1px solid #adadad;
+        border-radius: 2px;
+        background: #fff;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .multiselect-selected {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .multiselect-arrow {
+        margin-left: 0.5rem;
+        font-size: 0.8em;
+        color: #514943;
+        transition: transform 0.2s ease;
+    }
+
+    .multiselect-wrapper.active .multiselect-arrow {
+        transform: rotate(180deg);
+    }
+
+    .multiselect-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #adadad;
+        border-top: none;
+        border-radius: 0 0 2px 2px;
+        max-height: 300px;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .multiselect-wrapper.active .multiselect-dropdown {
+        display: block;
+    }
+
+    .multiselect-search {
+        padding: 0.5rem;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .multiselect-search-input {
+        width: 100%;
+        padding: 0.4rem;
+        border: 1px solid #ddd;
+        border-radius: 2px;
+        font-size: 1.2rem;
+    }
+
+    .multiselect-options {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.5rem 0;
+    }
+
+    .multiselect-option {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .multiselect-option:hover {
+        background-color: #f5f5f5;
+    }
+
+    .multiselect-checkbox {
+        margin-right: 0.8rem;
+    }
+
+    .multiselect-label {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .any-option {
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        margin-top: auto;
+        height: 3.2rem;
+    }
+
+    .filter-actions button {
+        height: 3.2rem;
+        padding: 0 1.5rem;
+        border-radius: 2px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        min-width: 120px;
+    }
+
+    .action-primary {
+        background: #eb5202;
+        border-color: #eb5202;
+        color: #fff;
+    }
+
+    .action-secondary {
+        background: #514943;
+        border-color: #514943;
+        color: #fff;
+    }
+
+    .action-primary:hover {
+        background: #ba4000;
+        border-color: #ba4000;
+    }
+
+    .action-secondary:hover {
+        background: #35302c;
+        border-color: #35302c;
+    }
+
+    @media screen and (max-width: 768px) {
+        .filters-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .filter-actions {
+            margin-top: 1rem;
+        }
+
+        .multiselect-dropdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            border: 1px solid #adadad;
+            border-radius: 4px;
+        }
+
+        .multiselect-options {
+            max-height: calc(80vh - 120px);
+        }
+    }
+</style>
