@@ -1372,46 +1372,6 @@ $processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
 </div>
 ```
 
-2. **Add CSS** (`view/adminhtml/web/css/source/_module.less`):
-```less
-.data-grid {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1rem 0;
-
-    th, td {
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-    }
-
-    th {
-        background: #f5f5f5;
-        text-align: left;
-    }
-
-    tr:nth-child(even) {
-        background: #f9f9f9;
-    }
-}
-
-.pagination {
-    margin: 1rem 0;
-    
-    a {
-        padding: 0.5rem 1rem;
-        margin: 0 0.25rem;
-        border: 1px solid #ccc;
-        text-decoration: none;
-        
-        &.active {
-            background: #007bdb;
-            color: white;
-            border-color: #007bdb;
-        }
-    }
-}
-```
-
 ### 3. Custom Grid System
 
 To implement your own grid system:
@@ -1481,4 +1441,40 @@ require(['ag-grid-community'], function(agGrid) {
 3. **Preserve Field Configuration**: Use the existing field configuration system
 4. **Handle Server-Side Operations**: Implement proper server-side pagination and filtering
 5. **Maintain Responsiveness**: Ensure your grid works well on all devices
+
+## Performance Monitoring
+
+The grid includes built-in performance monitoring capabilities to help you track and optimize query execution times:
+
+### Server-Side Metrics
+- **SQL Count Time**: Measures the time taken to count total records
+- **SQL Query Time**: Measures the execution time of the main data query
+- **Total Response Time**: Includes all server-side processing time
+
+### Client-Side Metrics
+- **Server Response Time**: Network transfer time from request to response
+- **Grid Update Time**: Total time including client-side rendering
+- **Data Size**: Number of rows received from the server
+
+### How to Use Performance Metrics
+1. Open your browser's developer tools (F12)
+2. Go to the Console tab
+3. Apply filters or change grid settings
+4. View the timing metrics in the console output
+
+Example console output:
+```
+Server SQL Count time: 45ms
+Server SQL Query time: 120ms
+Server response time: 180ms
+Received 50 rows of data
+Total grid update time: 220ms
+```
+
+### Performance Optimization Tips
+1. Monitor SQL execution times to identify slow queries
+2. Use appropriate indexes for frequently filtered columns
+3. Consider implementing caching for common filter combinations
+4. Adjust page size based on performance metrics
+5. Use server-side filtering and sorting for large datasets
 

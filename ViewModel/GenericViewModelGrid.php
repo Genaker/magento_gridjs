@@ -343,10 +343,13 @@ class GenericViewModelGrid implements ArgumentInterface
      */
     public function getGridData(array $fields = [], array $filters = [])
     {
+        $timeStart = microtime(true);
         $data = $this->getData($fields);
         if (isset($data['error'])) {
             return json_encode(['error' => true, 'message' =>  $data['message']]);
         }
+        $timeEnd = microtime(true);
+        $sqlTime = $timeEnd - $timeStart;
         // $item is the row data
         $jsonData = array_map(function ($item) use ($fields) {
             return array_map(function ($field) use ($item) {
@@ -361,8 +364,11 @@ class GenericViewModelGrid implements ArgumentInterface
             }, $fields);
         }, $data);
 
+        $timeStart = microtime(true);
         $totalCount = $this->getTotalCount();
-        $result = ['data' => $jsonData, 'total' => $totalCount];
+        $timeEnd = microtime(true);
+        $timeCount = $timeEnd - $timeStart;
+        $result = ['data' => $jsonData, 'total' => $totalCount, 'timeCount' => $timeCount, 'timeSql' => $sqlTime];
         return $result;
     }
 

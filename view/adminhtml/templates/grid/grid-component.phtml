@@ -58,6 +58,10 @@ $filterData = [
 </div>
 
 <script type="module">
+
+    // Flag to prevent multiple AJAX reloads you can change it and reload entire page on filter 
+    window.ajaxReload = true;
+
     import { Grid, html } from 'https://unpkg.com/gridjs/dist/gridjs.module.js';
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -105,7 +109,7 @@ $filterData = [
         });
 
         // Initialize Grid.js with server-side data loading and pagination
-        const grid = new Grid({
+        window.grid = new Grid({
             columns: gridColumns,
             data: gridData, // Will be replaced by AJAX
             pagination: {
@@ -151,7 +155,7 @@ $filterData = [
         }).render(document.getElementById('wrapper'));
 
         // Update URL with current page on pagination change
-        grid.on('pagination:changed', function(page) {
+        window.grid.on('pagination:changed', function(page) {
             const url = new URL(window.location.href);
             url.searchParams.set('page', page);
             window.history.replaceState(null, '', url.toString());

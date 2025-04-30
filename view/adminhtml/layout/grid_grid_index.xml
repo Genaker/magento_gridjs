@@ -30,7 +30,7 @@
                         </item>
                         <item name="payment_method" xsi:type="array">
                             <item name="label" xsi:type="string">Payment Method</item>
-                            <item name="element" xsi:type="string">select</item>
+                            <item name="element" xsi:type="string">multiselect</item>
                             <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
                         </item>
                     </argument>

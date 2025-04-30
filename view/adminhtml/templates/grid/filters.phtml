@@ -337,7 +337,77 @@ extract($filterData);
 
         // Filter submit button
         document.getElementById('filter-submit').addEventListener('click', function() {
-            window.location.href = window.location.href;
+            if(!window.ajaxReload){
+                window.location.href = window.location.href;
+                return;
+            }
+           
+            console.log('Filter submit button clicked');
+            if (window.grid && typeof window.grid.updateConfig === 'function') {
+                try {
+                    // Get current URL
+                    const currentUrl = window.location.href;
+                    const url = new URL(currentUrl);
+                    
+                    // Add or update data parameter
+                    url.searchParams.set('data', 'true');
+                    
+                    console.log('Updating grid with URL:', url.toString());
+
+                    // Start timing
+                    const startTime = performance.now();
+
+                    // Update grid with server configuration
+                    window.grid.updateConfig({
+                        server: {
+                            url: url.toString(),
+                            then: data => {
+                                // Calculate server response time
+                                const serverTime = performance.now() - startTime;
+                                console.log(`Server response time: ${serverTime.toFixed(2)}ms`);
+
+                                if (data.error) {
+                                    console.error('Error in grid data:', data.error);
+                                    return [];
+                                }
+                                if (!data || !data.data) {
+                                    console.error('Error: Invalid data structure received', data);
+                                    return [];
+                                }
+
+                                // Log server-side timing metrics
+                                if (data.timeCount) {
+                                    console.log(`Server SQL Count time: ${data.timeCount}ms`);
+                                }
+                                if (data.timeSql) {
+                                    console.log(`Server SQL Query time: ${data.timeSql}ms`);
+                                }
+
+                                // Log data size
+                                console.log(`Received ${data.data.length} rows of data`);
+                                
+                                return data.data;
+                            },
+                            total: data => {
+                                if (!data.total) {
+                                    console.error('Error: Invalid total count received', data);
+                                    return 0;
+                                }
+                                return data.total;
+                            }
+                        }
+                    }).forceRender();
+
+                    // Add event listener for grid update completion
+                    window.grid.on('ready', () => {
+                        const totalTime = performance.now() - startTime;
+                        console.log(`Total grid update time: ${totalTime.toFixed(2)}ms`);
+                    });
+
+                } catch (error) {
+                    console.error('Error updating grid:', error);
+                }
+            }
         });
 
         // Clear filters button
