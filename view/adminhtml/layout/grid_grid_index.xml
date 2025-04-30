@@ -34,6 +34,9 @@
                             <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
                         </item>
                     </argument>
+                    <argument name="dataProcessors" xsi:type="array">
+                         <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
+                    </argument>
                     <argument name="pageSize" xsi:type="number">20</argument>
                     <argument name="showFilters" xsi:type="boolean">true</argument>
                 </arguments>

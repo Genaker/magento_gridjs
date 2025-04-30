@@ -1,7 +1,9 @@
 <?php
 namespace Mage\Grid\Api;
 
-interface DataProcessorInterface
+use Magento\Framework\View\Element\Block\ArgumentInterface;
+
+interface DataProcessorInterface extends ArgumentInterface
 {
     /**
      * Process the data for a specific field

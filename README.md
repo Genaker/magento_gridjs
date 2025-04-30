@@ -947,46 +947,119 @@ $('#example').DataTable({
 
 Mage Grid uses a flexible and extensible **data processor** system to transform and format grid cell values before rendering. This allows you to easily customize how each field is displayed, including adding HTML, formatting dates, prices, statuses, and more.
 
-### How It Works
+### Dual Processor Configuration
 
-- **Field Mapping:**
-  Each field (e.g., `status`, `grand_total`, `created_at`) can be mapped to a specific processor class in `di.xml`:
-  ```xml
-  <argument name="dataProcessors" xsi:type="array">
-      <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
-      <item name="grand_total" xsi:type="object">Mage\Grid\Model\DataProcessor\PriceProcessor</item>
-      <!-- ... -->
-  </argument>
-  ```
-- **Default Processor:**
-  If a field does not have a specific processor, the `DefaultProcessor` is used, which safely escapes HTML.
-- **Chain Processor:**
-  You can define a `ChainProcessor` that runs multiple processors in a specific order, allowing for complex, layered transformations (e.g., escape, then format as price, then add custom markup).
+The module supports two ways to configure data processors:
 
-### Example Processors
-
-- **DefaultProcessor:** Escapes HTML for safe output.
-- **StatusProcessor:** Renders status fields as colored badges with icons.
-- **PriceProcessor:** Formats numeric values as styled prices.
-- **DateProcessor:** Formats date/time fields.
-- **ChainProcessor:** Runs a sequence of processors in a defined order (configurable via DI and each processor's `$order` property).
-
-### Customization
-
-- **Add your own processor:**
-  Implement `Mage\Grid\Api\DataProcessorInterface` and map it to a field in `di.xml`.
-- **Control execution order:**
-  Set the `$order` property in your processor class and/or override it via DI.
-
-### Example Usage
-
-```php
-// In your ViewModel, the correct processor is chosen dynamically:
-$processor = $this->dataProcessors[$field] ?? $this->defaultProcessor;
-$output = $processor->process($field, $value, $row);
+1. **Layout XML Configuration** (`grid_grid_index.xml`):
+```xml
+<block class="Mage\Grid\Block\GenericGrid" name="grid_generic_grid" template="Mage_Grid::grid/grid-component.phtml">
+    <arguments>
+        <argument name="dataProcessors" xsi:type="array">
+            <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
+            <item name="grand_total" xsi:type="object">Mage\Grid\Model\DataProcessor\PriceProcessor</item>
+        </argument>
+    </arguments>
+</block>
 ```
 
-This system makes your grid output highly customizable, maintainable, and ready for advanced formatting needs.
+2. **DI Configuration** (`di.xml`):
+```xml
+<type name="Mage\Grid\ViewModel\GenericViewModelGrid">
+    <arguments>
+        <argument name="dataProcessors" xsi:type="array">
+            <item name="customer_email" xsi:type="object">Mage\Grid\Model\DataProcessor\ObfuscateProcessor</item>
+            <item name="created_at" xsi:type="object">Mage\Grid\Model\DataProcessor\DateProcessor</item>
+            <item name="grand_total" xsi:type="object">Mage\Grid\Model\DataProcessor\PriceProcessor</item>
+        </argument>
+    </arguments>
+</type>
+```
+
+### Processor Resolution Order
+
+1. Layout XML processors take precedence over DI configuration
+2. If no processor is found in either location, the default processor is used
+3. Processors can be chained using the `ChainProcessor`
+
+### Example: Combined Configuration
+
+```xml
+<!-- grid_grid_index.xml -->
+<block class="Mage\Grid\Block\GenericGrid" name="grid_generic_grid">
+    <arguments>
+        <argument name="dataProcessors" xsi:type="array">
+            <!-- Grid-specific processors -->
+            <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
+        </argument>
+    </arguments>
+</block>
+
+<!-- di.xml -->
+<type name="Mage\Grid\ViewModel\GenericViewModelGrid">
+    <arguments>
+        <argument name="dataProcessors" xsi:type="array">
+            <!-- Global processors -->
+            <item name="customer_email" xsi:type="object">Mage\Grid\Model\DataProcessor\ObfuscateProcessor</item>
+            <item name="created_at" xsi:type="object">Mage\Grid\Model\DataProcessor\DateProcessor</item>
+        </argument>
+    </arguments>
+</type>
+```
+
+### Processor Types
+
+1. **Default Processors**:
+   - `DefaultProcessor`: Basic HTML escaping
+   - `StatusProcessor`: Status badge rendering
+   - `PriceProcessor`: Price formatting
+   - `DateProcessor`: Date/time formatting
+   - `ObfuscateProcessor`: Data obfuscation
+
+2. **Custom Processors**:
+   - Implement `Mage\Grid\Api\DataProcessorInterface`
+   - Register in either layout XML or DI configuration
+   - Can be grid-specific or global
+
+### Example: Custom Processor
+
+```php
+namespace Your\Module\Model\DataProcessor;
+
+use Mage\Grid\Api\DataProcessorInterface;
+
+class CustomProcessor implements DataProcessorInterface
+{
+    public function process($field, $value, $row)
+    {
+        // Your custom processing logic
+        return $processedValue;
+    }
+}
+```
+
+### Chain Processor
+
+The `ChainProcessor` allows you to combine multiple processors:
+
+```xml
+<type name="Mage\Grid\Model\DataProcessor\ChainProcessor">
+    <arguments>
+        <argument name="processors" xsi:type="array">
+            <item name="escape" xsi:type="object">Mage\Grid\Model\DataProcessor\DefaultProcessor</item>
+            <item name="format" xsi:type="object">Mage\Grid\Model\DataProcessor\PriceProcessor</item>
+        </argument>
+    </arguments>
+</type>
+```
+
+### Best Practices
+
+1. Use layout XML processors for grid-specific customizations
+2. Use DI configuration for global processors
+3. Keep processors focused on a single responsibility
+4. Use the chain processor for complex transformations
+5. Document processor behavior and dependencies
 
 ## Additional HTML/JS Templates (Popups, Custom Scripts, etc.)
 
@@ -1175,4 +1248,237 @@ document.addEventListener('grid:filter:clear', function(event) {
     console.log('Filters cleared');
 });
 ```
+
+## Replacing GridJS with Alternative Grid Systems
+
+The Mage Grid module is designed to be flexible and allows you to replace GridJS with any other grid system. Here's how to implement alternative grid solutions:
+
+### 1. DataTables Integration
+
+To use DataTables instead of GridJS:
+
+1. **Create a new template** (`view/adminhtml/templates/grid/datatable-component.phtml`):
+```php
+<?php
+// Get grid data
+$fields = array_keys($block->getFieldsNames());
+$fieldsFull = $block->getFields();
+$jsonGridData = $block->getGridJsonData();
+$fieldsConfig = $block->getFieldsConfig();
+$tableName = $block->getTableName();
+$fieldsNames = $block->getFieldsNames();
+$filters = $this->getRequest()->getParam('filter', []);
+$processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
+?>
+
+<div id="grid-wrapper">
+    <!-- Render filters -->
+    <?= $block->getFiltersHtml(['fields' => $processedFields, 'filters' => $filters]) ?>
+
+    <!-- DataTables container -->
+    <table id="grid-table" class="display">
+        <thead>
+            <tr>
+                <?php foreach ($fieldsNames as $field => $label): ?>
+                    <th><?= $label ?></th>
+                <?php endforeach; ?>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<script>
+require(['jquery', 'datatables'], function($) {
+    $('#grid-table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: window.location.href,
+            data: function(d) {
+                d.data = true;
+                return d;
+            }
+        },
+        columns: <?= json_encode(array_map(function($field) use ($fieldsNames) {
+            return ['data' => $field, 'title' => $fieldsNames[$field]];
+        }, $fields)) ?>,
+        pageLength: 20,
+        order: [[0, 'desc']]
+    });
+});
+</script>
+```
+
+2. **Update your layout XML** to use the new template:
+```xml
+<block class="Mage\Grid\Block\GenericGrid" 
+       name="grid_generic_grid" 
+       template="Mage_Grid::grid/datatable-component.phtml">
+    <!-- ... existing arguments ... -->
+</block>
+```
+
+### 2. Simple HTML Table
+
+For a basic HTML table without JavaScript:
+
+1. **Create a new template** (`view/adminhtml/templates/grid/simple-table.phtml`):
+```php
+<?php
+$fields = array_keys($block->getFieldsNames());
+$fieldsFull = $block->getFields();
+$data = $block->getViewModel()->getGridData();
+$fieldsConfig = $block->getFieldsConfig();
+$fieldsNames = $block->getFieldsNames();
+$filters = $this->getRequest()->getParam('filter', []);
+$processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
+?>
+
+<div id="grid-wrapper">
+    <!-- Render filters -->
+    <?= $block->getFiltersHtml(['fields' => $processedFields, 'filters' => $filters]) ?>
+
+    <!-- Simple HTML table -->
+    <table class="data-grid">
+        <thead>
+            <tr>
+                <?php foreach ($fieldsNames as $field => $label): ?>
+                    <th><?= $label ?></th>
+                <?php endforeach; ?>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($data as $row): ?>
+                <tr>
+                    <?php foreach ($fields as $field): ?>
+                        <td><?= $block->getViewModel()->processField($field, $row[$field], $row) ?></td>
+                    <?php endforeach; ?>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <!-- Simple pagination -->
+    <?php if ($block->getViewModel()->getTotalPages() > 1): ?>
+        <div class="pagination">
+            <?php for ($i = 1; $i <= $block->getViewModel()->getTotalPages(); $i++): ?>
+                <a href="?page=<?= $i ?>" 
+                   class="<?= $i == $block->getViewModel()->getCurrentPage() ? 'active' : '' ?>">
+                    <?= $i ?>
+                </a>
+            <?php endfor; ?>
+        </div>
+    <?php endif; ?>
+</div>
+```
+
+2. **Add CSS** (`view/adminhtml/web/css/source/_module.less`):
+```less
+.data-grid {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+
+    th, td {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+    }
+
+    th {
+        background: #f5f5f5;
+        text-align: left;
+    }
+
+    tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+}
+
+.pagination {
+    margin: 1rem 0;
+    
+    a {
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border: 1px solid #ccc;
+        text-decoration: none;
+        
+        &.active {
+            background: #007bdb;
+            color: white;
+            border-color: #007bdb;
+        }
+    }
+}
+```
+
+### 3. Custom Grid System
+
+To implement your own grid system:
+
+1. **Create a new template** with your preferred grid library
+2. **Use the block's methods** to get data and configuration:
+   - `getFieldsNames()`: Get field labels
+   - `getGridJsonData()`: Get grid data as JSON
+   - `getFieldsConfig()`: Get field configurations
+   - `getProcessedFields()`: Get processed field data
+   - `getFiltersHtml()`: Get rendered filters
+
+3. **Implement your own JavaScript** to handle:
+   - Data loading
+   - Pagination
+   - Sorting
+   - Filtering
+
+### Key Components to Override
+
+When replacing GridJS, you mainly need to focus on:
+
+1. **Template File**: Create your own `grid-component.phtml`
+2. **JavaScript**: Implement your grid initialization
+3. **CSS**: Add your grid styling
+4. **Data Processing**: Use the existing processor system
+
+The rest of the module (data loading, filtering, processing) remains unchanged.
+
+### Example: Using AG Grid
+
+```php
+<!-- view/adminhtml/templates/grid/ag-grid-component.phtml -->
+<div id="grid-wrapper">
+    <?= $block->getFiltersHtml($filterData) ?>
+    <div id="myGrid" style="height: 500px; width: 100%;"></div>
+</div>
+
+<script>
+require(['ag-grid-community'], function(agGrid) {
+    const columnDefs = <?= json_encode(array_map(function($field) use ($fieldsNames) {
+        return {
+            field: $field,
+            headerName: $fieldsNames[$field]
+        };
+    }, $fields)) ?>;
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: <?= $jsonGridData ?>,
+        pagination: true,
+        paginationPageSize: 20,
+        onGridReady: params => {
+            params.api.sizeColumnsToFit();
+        }
+    };
+
+    new agGrid.Grid(document.querySelector('#myGrid'), gridOptions);
+});
+</script>
+```
+
+### Best Practices
+
+1. **Keep Data Processing**: Use the existing processor system for consistent data formatting
+2. **Maintain Filter Integration**: Keep the filter system for consistent filtering
+3. **Preserve Field Configuration**: Use the existing field configuration system
+4. **Handle Server-Side Operations**: Implement proper server-side pagination and filtering
+5. **Maintain Responsiveness**: Ensure your grid works well on all devices
 

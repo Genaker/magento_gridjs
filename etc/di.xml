@@ -9,7 +9,6 @@
         <arguments>
             <argument name="defaultProcessor" xsi:type="object">Mage\Grid\Model\DataProcessor\DefaultProcessor</argument>
             <argument name="dataProcessors" xsi:type="array">
-                <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
                 <item name="customer_email" xsi:type="object">Mage\Grid\Model\DataProcessor\ObfuscateProcessor</item>
                 <item name="increment_id" xsi:type="object">Mage\Grid\Model\DataProcessor\ObfuscateProcessor</item>
                 <item name="created_at" xsi:type="object">Mage\Grid\Model\DataProcessor\DateProcessor</item>

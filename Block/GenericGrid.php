@@ -77,6 +77,10 @@ class GenericGrid extends Template
         $this->messageManager = $messageManager;
         // Use provided ViewModel or fallback to default
         $this->viewModel = $this->getData('viewModel') ?: $defaultViewModel;
+        $dataProcessors = $this->getData('dataProcessors') ?: [];
+        foreach ($dataProcessors as $field => $processor) {
+            $this->viewModel->addDataProcessor($field, $processor);
+        }
 
         // Set up fields and field names
         $this->fields = $this->getData('fields') ?: ['id' => 'ID'];

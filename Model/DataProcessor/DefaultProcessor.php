@@ -2,6 +2,7 @@
 namespace Mage\Grid\Model\DataProcessor;
 
 use Mage\Grid\Api\DataProcessorInterface;
+use Magento\Framework\View\Element\Block\ArgumentInterface;
 
 class DefaultProcessor implements DataProcessorInterface
 {
