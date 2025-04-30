@@ -268,9 +268,9 @@ class GenericViewModelGrid implements ArgumentInterface
                 //dd($field, $value);
                 if (in_array($field, $fields)) {
                     if (is_array($value)) {
-                        $collection->addFieldToFilter($field, ['in' => $value]);
+                        $collection->addFieldToFilter($field, ['IN' => $value]);
                     } else {
-                        $collection->addFieldToFilter($field, ['like' => $value . '%']);
+                        $collection->addFieldToFilter($field, ['LIKE' => $value . '%']);
                     }
                 }
             }
@@ -584,47 +584,54 @@ class GenericViewModelGrid implements ArgumentInterface
             return $this->executeSqlQuery();
         }
 
-        // Get the database connection
-        $connection = $this->resource->getConnection();
-        $tableName = $tableName ?: $this->tableName;
+        try {
+            // Get the database connection
+            $connection = $this->resource->getConnection();
+            $tableName = $tableName ?: $this->tableName;
 
-        // Build the query
-        $select = $connection->select()->from($tableName, 'COUNT(*)');
+            // Build the query
+            $select = $connection->select()->from($tableName, 'COUNT(*)');
 
-        // Apply filters if they exist
-        if (!empty($this->filters)) {
-            foreach ($this->filters as $field => $value) {
-                if (is_array($value)) {
-                    $select->where($field . ' IN (?)', $value);
-                } else {
-                    $select->where($field . ' = ?', $value);
+            // Apply filters if they exist
+            if (!empty($this->filters)) {
+                foreach ($this->filters as $field => $value) {
+                    if (is_array($value)) {
+                        $select->where($field . ' IN (?)', $value);
+                    } else {
+                        $select->where($field . ' LIKE ?', $value . '%');
+                    }
                 }
             }
-        }
 
-        // Check cache first
-        $cacheKey = $this->getTotalCountCacheKey($tableName, $this->filters);
-        $cachedCount = $this->cache->load($cacheKey);
+            // Check cache first
+            $cacheKey = $this->getTotalCountCacheKey($tableName, $this->filters);
+            $cachedCount = $this->cache->load($cacheKey);
 
-        if ($cachedCount !== false) {
-            $count = (int)$cachedCount;
-            // If cached count is > 100, use it
-            if ($count > 100) {
-                return $count;
+            if ($cachedCount !== false) {
+                $count = (int)$cachedCount;
+                // If cached count is > 100, use it
+                if ($count > 100) {
+                    return $count;
+                }
             }
-        }
 
-        // Execute the query
-        $count = (int)$connection->fetchOne($select);
+            //die($select);
 
-        // Cache only if count is greater than 100 to improve performance
-        if ($count > 100) {
-            $this->cache->save(
-                (string)$count,
-                $cacheKey,
-                [self::CACHE_TAG],
-                self::CACHE_LIFETIME
-            );
+            // Execute the query
+            $count = (int)$connection->fetchOne($select);
+
+            // Cache only if count is greater than 100 to improve performance
+            if ($count > 100) {
+                $this->cache->save(
+                    (string)$count,
+                    $cacheKey,
+                    [self::CACHE_TAG],
+                    self::CACHE_LIFETIME
+                );
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Error getting total count: ' . $e->getMessage());
+            throw $e;
         }
 
         return $count;
