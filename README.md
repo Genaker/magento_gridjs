@@ -1442,39 +1442,56 @@ require(['ag-grid-community'], function(agGrid) {
 4. **Handle Server-Side Operations**: Implement proper server-side pagination and filtering
 5. **Maintain Responsiveness**: Ensure your grid works well on all devices
 
-## Performance Monitoring
+## Performance Monitoring & Optimization
 
-The grid includes built-in performance monitoring capabilities to help you track and optimize query execution times:
+The module includes built-in performance metrics to help you monitor and optimize your grid's performance:
 
-### Server-Side Metrics
-- **SQL Count Time**: Measures the time taken to count total records
-- **SQL Query Time**: Measures the execution time of the main data query
-- **Total Response Time**: Includes all server-side processing time
+### Performance Metrics Panel
 
-### Client-Side Metrics
-- **Server Response Time**: Network transfer time from request to response
-- **Grid Update Time**: Total time including client-side rendering
-- **Data Size**: Number of rows received from the server
+The grid displays real-time performance metrics including:
+- Server SQL Query time
+- Server Count time
+- AJAX Response time
+- Total processing time
 
-### How to Use Performance Metrics
-1. Open your browser's developer tools (F12)
-2. Go to the Console tab
-3. Apply filters or change grid settings
-4. View the timing metrics in the console output
+These metrics are displayed in the performance panel below the grid and are color-coded:
+- Green: Normal performance
+- Red: Performance issues detected (>1 second)
 
-Example console output:
+### Performance Optimization
+
+If you notice performance issues (red indicators), here are some steps to optimize:
+
+1. **Query Optimization**
+   - Review your SQL queries using the Magento profiler
+   - Add appropriate indexes to frequently filtered columns
+   - Consider implementing query caching
+
+2. **Data Loading**
+   - Implement server-side pagination
+   - Use lazy loading for large datasets
+   - Consider implementing data caching
+
+3. **Grid Configuration**
+   - Reduce the number of columns if possible
+   - Use efficient column formatters
+   - Implement proper filtering strategies
+
+### AI-Powered Optimization
+
+For advanced optimization, you can ask our AI assistant:
 ```
-Server SQL Count time: 45ms
-Server SQL Query time: 120ms
-Server response time: 180ms
-Received 50 rows of data
-Total grid update time: 220ms
+"Analyze my grid performance and suggest optimizations for [specific issue]"
 ```
 
-### Performance Optimization Tips
-1. Monitor SQL execution times to identify slow queries
-2. Use appropriate indexes for frequently filtered columns
-3. Consider implementing caching for common filter combinations
-4. Adjust page size based on performance metrics
-5. Use server-side filtering and sorting for large datasets
+The AI will:
+- Analyze your current configuration
+- Review performance metrics
+- Suggest specific optimizations
+- Provide code examples for implementation
+
+AI will provide specific recommendations based on your metrics
+
+
+**Remember: Regular performance monitoring and optimization is key to maintaining a responsive and efficient grid system.**
 

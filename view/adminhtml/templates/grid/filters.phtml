@@ -378,9 +378,17 @@ extract($filterData);
                                 // Log server-side timing metrics
                                 if (data.timeCount) {
                                     console.log(`Server SQL Count time: ${data.timeCount}ms`);
+                                    document.getElementById('grid-time-count').textContent = (data.timeCount).toFixed(4) + 's';
+                                    if (data.timeCount > 1) {
+                                        document.getElementById('grid-time-count').style.color = 'red';
+                                    }
                                 }
                                 if (data.timeSql) {
                                     console.log(`Server SQL Query time: ${data.timeSql}ms`);
+                                    document.getElementById('grid-time-sql').textContent = (data.timeSql).toFixed(4) + 's';
+                                    if (data.timeSql > 1) {
+                                        document.getElementById('grid-time-sql').style.color = 'red';
+                                    }
                                 }
 
                                 // Log data size

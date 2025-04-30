@@ -27,7 +27,6 @@ $filters = $this->getRequest()->getParam('filter', []);
 // Process field configurations and filter values
 $processedFields = $block->getProcessedFields($fields, $fieldsConfig, $filters);
 
-
 $filterData = [
     'fields' => $processedFields,
     'filters' => $filters
@@ -57,6 +56,19 @@ $filterData = [
     </div>
 </div>
 
+<?php if ($showPerformanceMetrics = true): ?>
+<!-- Performance metrics -->
+<div id="grid-time-info" class="grid-performance-metrics">
+    <div class="metric">
+        <span class="label">Server SQL Query time:</span>
+        <span id="grid-time-sql" class="value">-</span>
+    </div>
+    <div class="metric">
+        <span class="label">Server Count time:</span>
+        <span id="grid-time-count" class="value">-</span>
+    </div>
+</div>
+<?php endif; ?>
 <script type="module">
 
     // Flag to prevent multiple AJAX reloads you can change it and reload entire page on filter 
@@ -65,9 +77,9 @@ $filterData = [
     import { Grid, html } from 'https://unpkg.com/gridjs/dist/gridjs.module.js';
 
     document.addEventListener('DOMContentLoaded', function() {
-        // NOTE: gridData is loaded via AJAX in the server config below
+        // NOTE: gridData is loaded via AJAX in the server config below. inject echo jsonGridData
+        //const gridData = <?php echo $jsonGridData; ?>;
         const gridData = [];
-
         // Read pagination and filter state from URL
         const urlParams = new URLSearchParams(window.location.search);
         const defaultLimit = parseInt(urlParams.get('limit')) || 40;
@@ -139,6 +151,21 @@ $filterData = [
                         console.error('Error: Invalid data structure received', data);
                         return [];
                     }
+
+                    // Update performance metrics in UI with seconds
+                    if (data.timeSql) {
+                        document.getElementById('grid-time-sql').textContent = (data.timeSql).toFixed(4) + 's';
+                        if (data.timeSql > 1) {
+                            document.getElementById('grid-time-sql').style.color = 'red';
+                        }
+                    }
+                    if (data.timeCount) {
+                        document.getElementById('grid-time-count').textContent = (data.timeCount).toFixed(4) + 's';
+                        if (data.timeCount > 1) {
+                            document.getElementById('grid-time-count').style.color = 'red';
+                        }
+                    }
+
                     return data.data;
                 },
                 total: data => {
@@ -177,6 +204,44 @@ $filterData = [
         }
     });
 </script>
+
+<style>
+    .grid-performance-metrics {
+        margin: 1rem 0;
+        padding: 1rem;
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+
+    .grid-performance-metrics .metric {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0;
+    }
+
+    .grid-performance-metrics .metric:last-child {
+        margin-bottom: 0;
+        border-top: 1px solid #ddd;
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .grid-performance-metrics .label {
+        color: #666;
+        font-weight: 600;
+    }
+
+    .grid-performance-metrics .value {
+        color:rgb(24, 182, 58);
+        font-weight: 600;
+        font-family: monospace;
+        min-width: 100px;
+        text-align: right;
+    }
+</style>
 
 <!-- Render any additional HTML/JS templates configured via layout XML -->
 <?= $block->getAditionalHTML() ?>
