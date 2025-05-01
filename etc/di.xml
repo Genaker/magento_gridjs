@@ -27,4 +27,11 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Framework\Webapi\Authorization">
+        <plugin name="mage_grid_admin_session_check" type="Mage\Grid\Plugin\WebapiAuthorizationPlugin" sortOrder="10"/>
+    </type>
+    <type name="Magento\Backend\Model\Url">
+        <plugin name="mage_grid_skip_secret_key" type="Mage\Grid\Plugin\Admin\SecretKeyValidator" sortOrder="10"/>
+    </type>
 </config>

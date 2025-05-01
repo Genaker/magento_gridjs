@@ -357,10 +357,11 @@ extract($filterData);
                     // Start timing
                     const startTime = performance.now();
 
+                    window.grid.forceRender();/*
                     // Update grid with server configuration
                     window.grid.updateConfig({
                         server: {
-                            url: url.toString(),
+                            url: (prev, page, limit) => window.buildDataUrl(page, limit),
                             then: data => {
                                 // Calculate server response time
                                 const serverTime = performance.now() - startTime;
@@ -404,7 +405,7 @@ extract($filterData);
                                 return data.total;
                             }
                         }
-                    }).forceRender();
+                    }).forceRender();*/
 
                     // Add event listener for grid update completion
                     window.grid.on('ready', () => {
@@ -421,6 +422,18 @@ extract($filterData);
         // Clear filters button
         document.getElementById('filter-clear').addEventListener('click', function() {
             const fields = <?php echo json_encode($fields); ?>;
+            
+            const url = updateFilterURL(fields);
+            
+            window.history.replaceState(null, '', url.toString());
+            if(!window.ajaxReload){
+                window.location.href = url.toString();
+            } else {
+                window.grid.forceRender();
+            }
+        });
+
+        function updateFilterURL(fields){
             const url = new URL(window.location.href);
 
             // Clear all filters and URL parameters
@@ -449,9 +462,8 @@ extract($filterData);
                     url.searchParams.delete(`filter[${field}][]`);
                 }
             });
-
-            window.location.href = url.toString();
-        });
+            return url;
+        }
 
 
     });

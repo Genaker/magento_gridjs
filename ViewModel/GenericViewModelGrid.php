@@ -265,12 +265,16 @@ class GenericViewModelGrid implements ArgumentInterface
             //dd($filters);
 
             foreach ($filters as $field => $value) {
-                //dd($field, $value);
                 if (in_array($field, $fields)) {
                     if (is_array($value)) {
                         $collection->addFieldToFilter($field, ['IN' => $value]);
                     } else {
-                        $collection->addFieldToFilter($field, ['LIKE' => $value . '%']);
+                        if (isset($this->fieldsConfig[$field]['element']) && $this->fieldsConfig[$field]['element'] === 'select') {
+                            $collection->addFieldToFilter($field, ['IN' => $value]);
+                        } else {
+                            //dd($value);
+                            $collection->addFieldToFilter($field, ['like' => $value . '%']);
+                        }
                     }
                 }
             }
@@ -290,7 +294,7 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Log the SQL query (uncomment for debugging)
-            //echo 'SQL Query: ' . $collection->getSelect()->__toString();
+            //dd('SQL Query: ' . $collection->getSelect()->__toString());
 
             return $collection->getData();
         } catch (\Exception $e) {
@@ -309,12 +313,15 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param array $filters
      * @return string JSON-encoded data
      */
-    public function getJsonGridData(array $fields = [], array $filters = [], bool $return = false)
+    public function getJsonGridData(array $fields = [], array $filters = [], bool $return = true)
     {
         $result = [];
+
+        
+        $filters = array_merge($this->request->getParam('filter', []), $filters);
         // If AJAX request, output JSON and exit
         if (strtolower($this->request->getParam('data', 'false')) === 'true') {
-            //dd($fields, $filters);
+          
             try {
                 $result = $this->getGridData($fields, $filters);
 

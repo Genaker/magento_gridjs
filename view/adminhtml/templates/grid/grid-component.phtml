@@ -73,6 +73,27 @@ $filterData = [
 
     // Flag to prevent multiple AJAX reloads you can change it and reload entire page on filter 
     window.ajaxReload = true;
+    window.dataUrl = "<?php echo $block->getUrl('grid/grid/data'); ?>";
+
+    window.buildDataUrl = function(page, limit) {
+        let url = window.location.href;
+        if (window.dataUrl) {
+            url = window.dataUrl;
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Add all current parameters to the URL
+        urlParams.forEach((value, key) => {
+            if (key !== 'data') {
+                url += (url.includes('?') ? '&' : '?') + `${key}=${encodeURIComponent(value)}`;
+            }
+        });
+        
+        // Add pagination parameters
+        url += (url.includes('?') ? '&' : '?') + `page=${page + 1}&pageSize=${limit}`;
+        console.log("Build Url:" + url);
+        return url;
+    }
 
     import { Grid, html } from 'https://unpkg.com/gridjs/dist/gridjs.module.js';
 
@@ -132,16 +153,21 @@ $filterData = [
                 total: totalCount, // Will be set by server response
                 server: {
                     url: (prev, page, limit) => {
+                        return buildDataUrl(page, limit);
+                        
+                        /*
                         // Compose AJAX URL for server-side pagination
                         let curentUrl = window.location.href;
                         const delimeter = curentUrl.includes('?') ? '&' : '?';
                         let url = `${prev}${delimeter}limit=${limit}&offset=${page * limit}&data=true`;
                         return url;
+                        */
+                        
                     }
                 }
             },
             server: {
-                url: window.location.href,
+                url: (prev, page, limit) => buildDataUrl(page, limit),
                 then: data => {
                     if (data.error) {
                         console.error('Error in grid data:', data.error);

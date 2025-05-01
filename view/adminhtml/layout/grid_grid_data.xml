@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd" layout="empty">
+    <body>
+      
+            <block class="Mage\Grid\Block\GenericGrid" 
+                   name="grid_generic_grid" 
+                   template="Mage_Grid::grid/grid-component.phtml" cacheable="false">
+                <arguments>
+                    <argument name="viewModel" xsi:type="object">Mage\Grid\ViewModel\GenericViewModelGrid</argument>
+                    <argument name="collectionClass" xsi:type="object">Magento\Sales\Model\ResourceModel\Order\Grid\Collection</argument>
+                    <argument name="fields" xsi:type="array">
+                        <item name="increment_id" xsi:type="string">ID</item>
+                        <item name="status" xsi:type="array">
+                            <item name="label" xsi:type="string">StatuS</item>
+                            <item name="element" xsi:type="string">select</item>
+                            <item name="html" xsi:type="boolean">true</item>
+                            <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
+                        </item>
+                        <item name="store_id" xsi:type="array">
+                            <item name="label" xsi:type="string">Store</item>
+                            <item name="hidden" xsi:type="boolean">true</item>
+                            <item name="element" xsi:type="string">multiselect</item>
+                            <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
+                        </item>
+                        <item name="customer_email" xsi:type="string">Customer Email</item>
+                        <item name="created_at" xsi:type="string">Created At</item>
+                        <item name="grand_total" xsi:type="array">
+                            <item name="label" xsi:type="string">Grand Total</item>
+                            <item name="html" xsi:type="boolean">true</item>
+                        </item>
+                        <item name="payment_method" xsi:type="array">
+                            <item name="label" xsi:type="string">Payment Method</item>
+                            <item name="element" xsi:type="string">multiselect</item>
+                            <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>
+                        </item>
+                    </argument>
+                    <argument name="dataProcessors" xsi:type="array">
+                         <item name="status" xsi:type="object">Mage\Grid\Model\DataProcessor\StatusProcessor</item>
+                    </argument>
+                    <argument name="pageSize" xsi:type="number">20</argument>
+                    <argument name="showFilters" xsi:type="boolean">true</argument>
+                </arguments>
+            </block>
+    </body>
+</page>
+
+

@@ -1495,3 +1495,129 @@ AI will provide specific recommendations based on your metrics
 
 **Remember: Regular performance monitoring and optimization is key to maintaining a responsive and efficient grid system.**
 
+## API Endpoints
+
+The module provides REST API endpoints for accessing grid data programmatically:
+
+### Available Endpoints
+
+1. **Get Grid Data**
+   ```
+   GET /V1/grid/:gridId/data
+   ```
+   Parameters:
+   - `gridId`: Identifier of the grid
+   - `filters`: Array of filter criteria (optional)
+   - `page`: Page number (default: 1)
+   - `pageSize`: Items per page (default: 20)
+
+   Response:
+   ```json
+   {
+     "data": [
+       {
+         "id": "1",
+         "name": "Example",
+         "created_at": "2024-01-01 12:00:00"
+       }
+     ],
+     "total_count": 100,
+     "performance_metrics": {
+       "execution_time": 150,
+       "sql_time": 100,
+       "count_time": 50
+     }
+   }
+   ```
+
+2. **Get Grid Configuration**
+   ```
+   GET /V1/grid/:gridId/config
+   ```
+   Returns the grid's configuration including:
+   - Column definitions
+   - Default settings
+   - Available filters
+
+3. **Get Grid Fields**
+   ```
+   GET /V1/grid/:gridId/fields
+   ```
+   Returns the list of available fields and their configurations.
+
+4. **Get Grid Filters**
+   ```
+   GET /V1/grid/:gridId/filters
+   ```
+   Returns the available filter options for the grid.
+
+### Authentication
+
+All API endpoints require authentication using Magento's standard authentication methods:
+- OAuth 2.0
+- Integration tokens
+- Admin tokens
+
+### Example Usage
+
+```php
+// Using PHP
+$client = new \Magento\Framework\HTTP\Client\Curl();
+$client->addHeader('Authorization', 'Bearer ' . $token);
+$client->get('https://your-store.com/rest/V1/grid/orders/data?page=1&pageSize=20');
+
+// Using JavaScript
+fetch('/rest/V1/grid/orders/data?page=1&pageSize=20', {
+    headers: {
+        'Authorization': 'Bearer ' + token
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));
+```
+
+### Performance Monitoring
+
+The API response includes performance metrics to help monitor and optimize grid performance:
+- `execution_time`: Total time taken to process the request
+- `sql_time`: Time taken for SQL queries
+- `count_time`: Time taken for count operations
+
+### Error Handling
+
+The API uses standard HTTP status codes and returns detailed error messages:
+```json
+{
+    "message": "Error retrieving grid data: [specific error]",
+    "trace": "Stack trace for debugging"
+}
+```
+
+### Rate Limiting
+
+To protect the server, API requests are rate-limited:
+- 100 requests per minute per IP
+- 1000 requests per hour per user
+
+### Best Practices
+
+1. **Caching**
+   - Cache responses when possible
+   - Use ETags for conditional requests
+   - Implement client-side caching
+
+2. **Pagination**
+   - Always use pagination for large datasets
+   - Keep page size reasonable (20-50 items)
+   - Use cursor-based pagination for large datasets
+
+3. **Filtering**
+   - Use specific filters to reduce data size
+   - Combine multiple filters when needed
+   - Cache common filter combinations
+
+4. **Error Handling**
+   - Implement proper error handling
+   - Use exponential backoff for retries
+   - Log errors for monitoring
+

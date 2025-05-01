@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <!-- Get Grid Data -->
+    <route url="/V1/grid/:gridId" method="GET">
+        <service class="Mage\Grid\Model\GridData" method="getGridData"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes> 
