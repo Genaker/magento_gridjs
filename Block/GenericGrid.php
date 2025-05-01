@@ -3,11 +3,11 @@
 namespace Mage\Grid\Block;
 
 use GuzzleHttp\Promise\Is;
-use Magento\Backend\Block\Template;
-use Magento\Framework\View\Element\Template\Context as FrontendContext; // <-- use this if we need framework grid
-use Magento\Backend\Block\Template\Context as BackendContext; // <-- use this if we need backend grid
 use Mage\Grid\ViewModel\GenericViewModelGrid;
+use Magento\Backend\Block\Template\Context as BackendContext;  // <-- use this if we need backend grid
+use Magento\Backend\Block\Template;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\View\Element\Template\Context as FrontendContext;  // <-- use this if we need framework grid
 
 /**
  * Mage Grid GenericGrid Block
@@ -160,27 +160,26 @@ class GenericGrid extends Template
      */
     public function getProcessedFields($fields, $fieldsConfig, $filters)
     {
-    
         foreach ($fields as $field) {
-                $processedFields[$field] = [
-                    'config' => isset($fieldsConfig[$field]) ? $fieldsConfig[$field] : [],
-                    'hidden' => isset($fieldsConfig[$field]['hidden'])
-                        ? $fieldsConfig[$field]['hidden']
-                        : false,
-                    'label' => isset($fieldsConfig[$field]['label'])
-                        ? $fieldsConfig[$field]['label']
-                        : ucwords(str_replace('_', ' ', $field)),
-                    'element' => isset($fieldsConfig[$field]['element'])
-                        ? $fieldsConfig[$field]['element']
-                        : 'text',
-                    'data' => isset($fieldsConfig[$field]['data'])
-                        ? $fieldsConfig[$field]['data']
-                        : [],
-                    'filter_value' => isset($filters[$field])
-                        ? (is_array($filters[$field]) ? $filters[$field] : (string)$filters[$field])
-                        : (isset($fieldsConfig[$field]['element']) &&
-                            in_array($fieldsConfig[$field]['element'], ['select', 'multiselect']) ? [] : '')
-                ];
+            $processedFields[$field] = [
+                'config' => isset($fieldsConfig[$field]) ? $fieldsConfig[$field] : [],
+                'hidden' => isset($fieldsConfig[$field]['hidden'])
+                    ? $fieldsConfig[$field]['hidden']
+                    : false,
+                'label' => isset($fieldsConfig[$field]['label'])
+                    ? $fieldsConfig[$field]['label']
+                    : ucwords(str_replace('_', ' ', $field)),
+                'element' => isset($fieldsConfig[$field]['element'])
+                    ? $fieldsConfig[$field]['element']
+                    : 'text',
+                'data' => isset($fieldsConfig[$field]['data'])
+                    ? $fieldsConfig[$field]['data']
+                    : [],
+                'filter_value' => isset($filters[$field])
+                    ? (is_array($filters[$field]) ? $filters[$field] : (string) $filters[$field])
+                    : (isset($fieldsConfig[$field]['element']) &&
+                        in_array($fieldsConfig[$field]['element'], ['select', 'multiselect']) ? [] : '')
+            ];
         }
         return $processedFields;
     }
@@ -240,11 +239,10 @@ class GenericGrid extends Template
                 $output .= '<div class="message message-error">Error: Additional HTML template not found: ' . htmlspecialchars($template) . '</div>';
                 continue;
             }
-            $output .= "<!-- aditional html -->" . $this->fetchView($templateFile);
+            $output .= '<!-- aditional html -->' . $this->fetchView($templateFile);
         }
         return $output;
     }
-
 
     /**
      * Get filter value for a specific field
@@ -256,9 +254,9 @@ class GenericGrid extends Template
     protected function getFilterValue($field, $filters)
     {
         $fieldsConfig = $this->getFieldsConfig();
-        
-        if (isset($fieldsConfig[$field]['element']) && 
-            in_array($fieldsConfig[$field]['element'], ['select', 'multiselect'])) {
+
+        if (isset($fieldsConfig[$field]['element']) &&
+                in_array($fieldsConfig[$field]['element'], ['select', 'multiselect'])) {
             // For select/multiselect, keep as array
             $filterValue = isset($filters[$field]) ? $filters[$field] : [];
             if (!is_array($filterValue)) {
@@ -266,7 +264,7 @@ class GenericGrid extends Template
             }
         } else {
             // For text inputs, ensure string
-            $filterValue = isset($filters[$field]) ? (string)$filters[$field] : '';
+            $filterValue = isset($filters[$field]) ? (string) $filters[$field] : '';
         }
 
         return $filterValue;
@@ -288,8 +286,9 @@ class GenericGrid extends Template
      * @return string
      */
     public function getFiltersHtml($filterData): string
-    {   
-        return $this->getLayout()
+    {
+        return $this
+            ->getLayout()
             ->createBlock(\Mage\Grid\Block\Grid\Filters::class)
             ->setFilterData($filterData)
             ->toHtml();

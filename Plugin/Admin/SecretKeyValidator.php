@@ -30,7 +30,8 @@ class SecretKeyValidator
         Url $subject,
         \Closure $proceed
     ): bool {
-        if (strpos($this->request->getUri()->getPath(), 'grid/data')) {
+        if (strpos($this->request->getUri()->getPath(), 'grid/data') ||
+                strpos($this->request->getUri()->getPath(), 'grid/filter')) {
             return false;  // disable secret key for this action
         }
 

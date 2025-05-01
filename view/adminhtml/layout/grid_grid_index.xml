@@ -9,9 +9,13 @@
                     <argument name="viewModel" xsi:type="object">Mage\Grid\ViewModel\GenericViewModelGrid</argument>
                     <argument name="collectionClass" xsi:type="object">Magento\Sales\Model\ResourceModel\Order\Grid\Collection</argument>
                     <argument name="fields" xsi:type="array">
-                        <item name="increment_id" xsi:type="string">ID</item>
+                        <item name="entity_id" xsi:type="array">
+                            <item name="label" xsi:type="string">ID</item>
+                            <item name="html" xsi:type="boolean">true</item>
+                        </item>
+                        <item name="increment_id" xsi:type="string">Increment ID</item>
                         <item name="status" xsi:type="array">
-                            <item name="label" xsi:type="string">StatuS</item>
+                            <item name="label" xsi:type="string">Status</item>
                             <item name="element" xsi:type="string">select</item>
                             <item name="html" xsi:type="boolean">true</item>
                             <item name="source_model" xsi:type="string">Mage\Grid\Model\Fields\DefaultDataSource</item>

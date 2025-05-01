@@ -8,13 +8,15 @@
 // Extract the data passed from the main template
 $filterData = $block->getFilterData();
 extract($filterData);
-//dd($fields);
+// dd($fields);
 ?>
 <div id="filter-wrapper">
     <div class="filters-row">
-        <?php foreach ($fields as $field => $config):
-            if ($config['hidden']) continue;
-        ?>
+        <?php
+        foreach ($fields as $field => $config):
+            if ($config['hidden'])
+                continue;
+            ?>
             <div class="filter-field">
                 <label for="filter-<?php echo $field; ?>"><?php echo $config['label']; ?></label>
                 <?php if ($config['element'] === 'select'): ?>
@@ -50,7 +52,7 @@ extract($filterData);
                                         <input type="checkbox"
                                             value="<?php echo $value; ?>"
                                             class="multiselect-checkbox"
-                                            <?php echo !empty($config['filter_value']) && in_array($value, (array)$config['filter_value']) ? 'checked' : ''; ?>>
+                                            <?php echo !empty($config['filter_value']) && in_array($value, (array) $config['filter_value']) ? 'checked' : ''; ?>>
                                         <span class="multiselect-label"><?php echo $value; ?></span>
                                     </label>
                                 <?php endforeach; ?>
@@ -64,7 +66,7 @@ extract($filterData);
                             <option value=""><?= __('Any') ?></option>
                             <?php foreach ($config['data'] as $value): ?>
                                 <option value="<?php echo $value; ?>"
-                                    <?php echo !empty($config['filter_value']) && in_array($value, (array)$config['filter_value']) ? 'selected' : ''; ?>>
+                                    <?php echo !empty($config['filter_value']) && in_array($value, (array) $config['filter_value']) ? 'selected' : ''; ?>>
                                     <?php echo $value; ?>
                                 </option>
                             <?php endforeach; ?>
@@ -83,9 +85,68 @@ extract($filterData);
         <div class="filter-actions">
             <button type="button" id="filter-submit" class="action-primary"><?= __('Filter') ?></button>
             <button type="button" id="filter-clear" class="action-secondary"><?= __('Clear All') ?></button>
+            <button type="button" id="filter-refresh" class="action-secondary">
+                <span data-bind="i18n: 'Refresh'" class="admin__action-icon">
+                    <span class="admin__action-icon">
+                    </span>
+                </span>
+            </button>
         </div>
+        
     </div>
 </div>
+
+<? if (true): ?>
+    <style>
+    .terminal-style {
+        background-color: #000000 !important;
+        color: #00ff00;
+        border: 1px solid #00ff00;
+        font-family: monospace;
+        font-size: 14px;
+        padding: 10px;
+        border-radius: 4px;
+        position: relative;
+    }
+
+    .terminal-style::after {
+        content: '|';
+        position: absolute;
+        right: 10px;
+        animation: blink 1s step-end infinite;
+        color: #00ff00;
+    }
+
+    @keyframes blink {
+        from, to { opacity: 1; }
+        50% { opacity: 0; }
+    }
+
+    .terminal-style[disabled]::after {
+        display: none;
+    }
+</style>
+<div class="ai-assistant-container">
+    <div class="ai-assistant-input">
+        <input type="text" 
+               id="ai-assistant-input" 
+               class="admin__control-text ai-assistant-input-field"
+               placeholder="<?= __('Ask AI Assistant...') ?>" 
+               autocomplete="off" 
+               style="width: 90%; padding: 8px;">
+        <button type="button" 
+                id="ai-assistant-submit" 
+                class="action-secondary ai-assistant-button">
+            <span class="admin__icon admin__icon--small">
+                <?= __('Ask') ?>
+            </span>
+        </button>
+    </div>
+    <div id="ai-assistant-response" class="ai-assistant-response" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; display: none;">
+    </div>
+</div>
+
+<? endif; ?>
 <script>
     require(['jquery'], function($) {
         // Handle click on multiselect trigger
@@ -95,6 +156,153 @@ extract($filterData);
             $('.multiselect-wrapper').not($wrapper).removeClass('active');
             $wrapper.toggleClass('active');
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('filter-refresh').addEventListener('click', function() {
+                if (window.grid) {
+                    window.grid.forceRender();
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+    const aiInput = document.getElementById('ai-assistant-input');
+    const aiSubmit = document.getElementById('ai-assistant-submit');
+    const aiResponse = document.getElementById('ai-assistant-response');
+
+
+        // Add terminal style when input contains "select"
+        aiInput.addEventListener('input', function() {
+            const value = this.value.toLowerCase();
+            if (value.includes('select')) {
+                this.classList.add('terminal-style');
+            } else {
+                this.classList.remove('terminal-style');
+            }
+        });
+
+          // Adjust padding when terminal style is applied
+          aiInput.addEventListener('focus', function() {
+            if (this.classList.contains('terminal-style')) {
+                this.style.paddingRight = '20px';
+            }
+        });
+
+        // Remove blinking cursor when input is disabled
+        aiInput.addEventListener('disabled', function() {
+            if (this.classList.contains('terminal-style')) {
+                this.style.paddingRight = '8px';
+            }
+        });
+    
+    // Handle Enter key press
+    aiInput.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            aiSubmit.click();
+        }
+    });
+
+
+    window.applyAiSuggestion = function(url) {
+        console.log('Applying AI suggestion:', url);
+        window.history.replaceState(null, '', url.toString());
+        window.grid.forceRender();
+        // Implement your AI suggestion application logic here
+       // console.log('Applying AI suggestion:', query);
+    }
+
+    aiSubmit.addEventListener('click', async function() {
+        const query = aiInput.value.trim();
+        if (!query) {
+            alert('Please enter a query');
+            return;
+        }
+
+        try {
+            // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const params = {};
+        
+        const passParameters = ['pageSize', 'sortField', 'sortOrder'];
+        // Convert URL parameters to object
+        urlParams.forEach((value, key) => {
+            if (!passParameters.includes(key)) {
+                params[key] = value;
+            }
+        });
+
+          // Add the AI query
+          params.query = query;
+          params.currentUrl = window.location.href;
+    
+
+           // Create URL with parameters
+        const baseUrl = '<?php echo $block->getUrl('grid/grid/filter'); ?>';
+        const baseUrlData = '<?php echo $block->getUrl('grid/grid/index'); ?>';
+        params.DataUrl = baseUrlData;
+        const searchParams = new URLSearchParams(params);
+        const url = `${baseUrl}?${searchParams.toString()}`;
+
+            // Show loading state
+            aiResponse.style.display = 'block';
+            aiResponse.innerHTML = '<div style="text-align: center; padding: 10px;">🔍 Processing...</div>';
+
+            // Make AJAX request to FilterAI controller
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+            console.log(result);
+
+            if (result.success) {
+                // Format the response for display
+                const filters = result.suggestion.filters;
+                const filterHtml = filters.map(filter => `
+                    <li>
+                        <strong>${filter.field}</strong>: 
+                        ${filter.value}
+                    </li>
+                `).join('');
+
+                aiResponse.innerHTML = `
+                    <div style="padding: 10px;">
+                        <strong>AI Assistant:</strong>
+                        <p>Based on your query, I recommend filtering by:</p>
+                        <ul>
+                            ${filterHtml}
+                        </ul>
+                        <button class="action-secondary" 
+                                onclick="window.applyAiSuggestion('${result.suggestion.filterUrl}')">
+                            Apply Suggestion
+                        </button>
+                    </div>
+                `;
+            } else {
+                aiResponse.innerHTML = `
+                    <div style="padding: 10px; color: red;">
+                        Error: ${result.message}
+                    </div>
+                `;
+            }
+            window.applyAiSuggestion(result.suggestion.filterUrl);
+        } catch (error) {
+            console.error('Error:', error);
+            aiResponse.innerHTML = `
+                <div style="padding: 10px; color: red;">
+                    Error: Unable to process your request
+                </div>
+            `;
+        }
+    });
+
+    
+}); 
 
         // Handle checkbox changes
         $(document).on('change', '.multiselect-checkbox', function() {

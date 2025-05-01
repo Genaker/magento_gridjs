@@ -13,10 +13,10 @@
 // For full Grid.js documentation and advanced configuration, see:
 // https://gridjs.io/docs
 
-$fields = array_keys($block->getFieldsNames()); // array: ['id', 'order_number', ...]
-$fieldsFull = $block->getFields(); // associative array: ['id' => 'ID', ...]
+$fields = array_keys($block->getFieldsNames());  // array: ['id', 'order_number', ...]
+$fieldsFull = $block->getFields();  // associative array: ['id' => 'ID', ...]
 $block->lazyLoadCollectionClass();
-//$jsonGridData = $block->getGridJsonData(); // JSON-encoded grid data
+// $jsonGridData = $block->getGridJsonData(); // JSON-encoded grid data
 $fieldsConfig = $block->getFieldsConfig();
 $tableName = $block->getTableName();
 $fieldsNames = $block->getFieldsNames();
@@ -74,6 +74,7 @@ $filterData = [
 
     // Flag to prevent multiple AJAX reloads you can change it and reload entire page on filter 
     window.ajaxReload = true;
+    window.totalRecordCount = 0;
     window.dataUrl = "<?php echo $block->getUrl('grid/grid/data'); ?>";
 
     window.buildDataUrl = function(page, limit) {
@@ -147,6 +148,36 @@ $filterData = [
 
         // Initialize Grid.js with server-side data loading and pagination
         window.grid = new Grid({
+            style: {
+                td: {
+                    border: '1px solid #ccc'
+                },
+                table: {
+                    'font-size': '15px'
+                }
+            },
+            className: {
+                td: 'my-td-class',
+                table: 'custom-table-class'
+            },
+            language: {
+                search: {
+                    placeholder: '🔍 Search...'
+                },
+                pagination: {
+                    previous: '⬅️',
+                    next: '➡️',
+                    showing: 'Displaying',
+                    results: () => {
+                        if (window.totalRecordCount >= 999) {
+                            return '+ Records(More than 999)';
+                        }
+                        return `Records`;
+                    }
+                }
+            },
+            fixedHeader: true,
+            height: '100%',
             columns: gridColumns,
             data: gridData, // Will be replaced by AJAX
             pagination: {
@@ -241,6 +272,7 @@ $filterData = [
                         console.error('Error: Invalid total count received', data);
                         return 0;
                     }
+                    window.totalRecordCount = data.total;
                     return data.total;
                 }
             },

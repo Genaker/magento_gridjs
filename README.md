@@ -101,6 +101,18 @@ You can use AI tools like Cursor to:
 **Tip:**
 - The more you describe your intent (in comments, commit messages, or AI prompts), the better the AI can help you extend or refactor the grid.
 
+### AI Assistant Integration
+
+The Mage Grid module includes an advanced AI Assistant that helps users interact with the grid using natural language queries. The AI Assistant:
+
+- **Natural Language Filtering**: Users can type queries in natural language (e.g., "show orders from last week", "find orders with status pending") and the AI will convert them into appropriate filters.
+- **Terminal-like Interface**: When users type "select" or similar SQL-like keywords, the input field transforms into a terminal-like interface with green text on black background and a blinking cursor.
+- **Smart Suggestions**: Provides alternative filter suggestions when the query is ambiguous or when multiple filtering options are available.
+- **Context-Aware**: Takes into account current filters, pagination, and sorting when suggesting new filters.
+- **Error Handling**: Gracefully handles unclear queries and asks for clarification when needed.
+- **Performance Optimized**: Caches frequent queries and optimizes filter combinations for better performance.
+
+
 ## Installation
 
 1. Copy the module to your Magento installation:

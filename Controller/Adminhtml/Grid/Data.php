@@ -1,13 +1,13 @@
 <?php
 namespace Mage\Grid\Controller\Adminhtml\Grid;
 
-use Magento\Backend\App\Action;
-use Magento\Framework\Exception\LocalizedException;
-use Mage\Grid\ViewModel\GenericViewModelGrid;
-use Magento\Framework\App\ResponseInterface;
 use Mage\Grid\Block\GenericGrid;
-use Magento\Framework\View\LayoutFactory;
+use Mage\Grid\ViewModel\GenericViewModelGrid;
+use Magento\Backend\App\Action;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Result\PageFactory;
+use Magento\Framework\View\LayoutFactory;
 
 class Data extends Action
 {
@@ -45,7 +45,7 @@ class Data extends Action
         parent::__construct($context);
         $this->gridViewModel = $gridViewModel;
         $this->layoutFactory = $layoutFactory;
-        $this->resultPageFactory = $resultPageFactory;  
+        $this->resultPageFactory = $resultPageFactory;
     }
 
     /**
@@ -71,9 +71,9 @@ class Data extends Action
             $request = $this->getRequest();
             $request->setParams(['data' => 'false']);
 
-            $layout->getUpdate()->load();       // collect all handles (default, route, etc.)
-            $layout->generateXml();             // merge the XML
-            $layout->generateElements();        // turn <block/> tags into PHP objects
+            $layout->getUpdate()->load();  // collect all handles (default, route, etc.)
+            $layout->generateXml();  // merge the XML
+            $layout->generateElements();  // turn <block/> tags into PHP objects
 
             $this->gridBlock = $layout->getBlock('grid_generic_grid');
 
@@ -81,18 +81,15 @@ class Data extends Action
                 throw new LocalizedException(__('Grid block not found'));
             }
 
-
-
-            $fields = array_keys($this->gridBlock->getFieldsNames()); // array: ['id', 'order_number', ...]
-            $fieldsFull = $this->gridBlock->getFields(); // associative array: ['id' => 'ID', ...]
-            $jsonGridData = $this->gridBlock->getGridJsonData(); // JSON-encoded grid data
-            //dd($jsonGridData);
+            $fields = array_keys($this->gridBlock->getFieldsNames());  // array: ['id', 'order_number', ...]
+            $fieldsFull = $this->gridBlock->getFields();  // associative array: ['id' => 'ID', ...]
+            $jsonGridData = $this->gridBlock->getGridJsonData();  // JSON-encoded grid data
+            // dd($jsonGridData);
 
             // Return JSON response
             $this->getResponse()->representJson(
                 $jsonGridData
             );
-
         } catch (LocalizedException $e) {
             throw new \Exception('Error: ' . $e->getMessage(), 400);
         } catch (\Exception $e) {

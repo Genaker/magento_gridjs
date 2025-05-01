@@ -2,17 +2,17 @@
 
 namespace Mage\Grid\ViewModel;
 
-use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\ObjectManagerInterface;
-use Magento\Framework\View\LayoutInterface;
-use Psr\Log\LoggerInterface;
 use Mage\Grid\Api\DataProcessorInterface;
-use Mage\Grid\Model\DataProcessor\DefaultProcessor;
 use Mage\Grid\Model\DataProcessor\ChainProcessor;
-use Magento\Framework\App\ResourceConnection;
+use Mage\Grid\Model\DataProcessor\DefaultProcessor;
 use Magento\Framework\App\CacheInterface;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Magento\Framework\View\Element\Block\ArgumentInterface;
+use Magento\Framework\View\LayoutInterface;
+use Magento\Framework\ObjectManagerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * GenericViewModelGrid
@@ -103,10 +103,9 @@ class GenericViewModelGrid implements ArgumentInterface
      */
     public $fieldsHtml = [];
 
-
     /**
      * @var array List of field config for the grid
-     * 
+     *
      * example:  [
      *  "customer_group_id" => [
      *      "label" => "Customer Group ID",
@@ -224,9 +223,9 @@ class GenericViewModelGrid implements ArgumentInterface
     public function getSqlQuery($fields, $filters)
     {
         if ($this->getTableName() && $this->sqlQuery === null && $this->collectionClass === null) {
-            $sql = "SELECT " . implode(', ', $fields) . " FROM " . $this->getTableName() . " WHERE 1=1 ";
+            $sql = 'SELECT ' . implode(', ', $fields) . ' FROM ' . $this->getTableName() . ' WHERE 1=1 ';
             foreach ($filters as $field => $value) {
-                $sql .= " AND " . $field . " LIKE :" . $field;
+                $sql .= ' AND ' . $field . ' LIKE :' . $field;
             }
             $this->sqlQuery = $sql;
             return $this->sqlQuery;
@@ -262,7 +261,6 @@ class GenericViewModelGrid implements ArgumentInterface
 
             // Handle filters
             $filters = $this->getFilters();
-            //dd($filters);
 
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
@@ -272,7 +270,6 @@ class GenericViewModelGrid implements ArgumentInterface
                         if (isset($this->fieldsConfig[$field]['element']) && $this->fieldsConfig[$field]['element'] === 'select') {
                             $collection->addFieldToFilter($field, ['in' => $value]);
                         } else {
-                            //dd($value);
                             $collection->addFieldToFilter($field, ['like' => $value . '%']);
                         }
                     }
@@ -280,9 +277,9 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Handle pagination
-            $page = (int)$this->request->getParam('page', 1);
-            $limit = (int)$this->request->getParam('pageSize', $this->DEFAULT_LIMIT);
-            //$page = $offset / $limit + 1;
+            $page = (int) $this->request->getParam('page', 1);
+            $limit = (int) $this->request->getParam('pageSize', $this->DEFAULT_LIMIT);
+            // $page = $offset / $limit + 1;
             $collection->setPageSize($limit);
             $collection->setCurPage($page);
 
@@ -294,7 +291,7 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Log the SQL query (uncomment for debugging)
-            //dd('SQL Query: ' . $collection->getSelect()->__toString());
+            // dd('SQL Query: ' . $collection->getSelect()->__toString());
 
             return $collection->getData();
         } catch (\Exception $e) {
@@ -317,11 +314,9 @@ class GenericViewModelGrid implements ArgumentInterface
     {
         $result = [];
 
-        
         $filters = array_merge($this->request->getParam('filter', []), $filters);
         // If AJAX request, output JSON and exit
         if (strtolower($this->request->getParam('data', 'false')) === 'true') {
-          
             try {
                 $result = $this->getGridData($fields, $filters);
 
@@ -330,7 +325,7 @@ class GenericViewModelGrid implements ArgumentInterface
                 exit;
             } catch (\Throwable $e) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => true, 'message' =>  $e->getMessage()]);
+                echo json_encode(['error' => true, 'message' => $e->getMessage()]);
                 exit;
             }
         }
@@ -353,7 +348,7 @@ class GenericViewModelGrid implements ArgumentInterface
         $timeStart = microtime(true);
         $data = $this->getData($fields);
         if (isset($data['error'])) {
-            return json_encode(['error' => true, 'message' =>  $data['message']]);
+            return json_encode(['error' => true, 'message' => $data['message']]);
         }
         $timeEnd = microtime(true);
         $sqlTime = $timeEnd - $timeStart;
@@ -395,7 +390,7 @@ class GenericViewModelGrid implements ArgumentInterface
     function setFields(array $fields)
     {
         foreach ($fields as $key => $field) {
-            //dump($field);
+            // dump($field);
             if (is_string($field)) {
                 $this->fields[$key] = $key;
             } else if (is_array($field)) {
@@ -418,7 +413,7 @@ class GenericViewModelGrid implements ArgumentInterface
                 }
             }
         }
-        //dd($this->fieldsConfig);
+        // dd($this->fieldsConfig);
         return $this;
     }
 
@@ -615,23 +610,23 @@ class GenericViewModelGrid implements ArgumentInterface
             $cachedCount = $this->cache->load($cacheKey);
 
             if ($cachedCount !== false) {
-                $count = (int)$cachedCount;
+                $count = (int) $cachedCount;
                 // If cached count is > 100, use it
                 if ($count > 100) {
                     return $count;
                 }
             }
 
-            //Hard limit to optimise huge table performace
+            // Hard limit to optimise huge table performace
             $select->limit(999);
 
             // Execute the query
-            $count = (int)$connection->fetchOne($select);
+            $count = (int) $connection->fetchOne($select);
 
             // Cache only if count is greater than 100 to improve performance
             if ($count > 100) {
                 $this->cache->save(
-                    (string)$count,
+                    (string) $count,
                     $cacheKey,
                     [self::CACHE_TAG],
                     self::CACHE_LIFETIME
@@ -670,7 +665,9 @@ class GenericViewModelGrid implements ArgumentInterface
             return '<div class="message message-error">' . $jsonGridData['message'] . '</div>';
         }
 
-        $gridHtml = $this->layout->createBlock('Magento\Framework\View\Element\Template')
+        $gridHtml = $this
+            ->layout
+            ->createBlock('Magento\Framework\View\Element\Template')
             ->setTemplate('Mage_Grid::grid/grid-component.phtml')
             ->setData('jsonGridData', $jsonGridData)
             ->setData('fields', $fields)
@@ -696,7 +693,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param string $field
      * @return DataProcessorInterface|null
      */
-    protected function getDataProcessor(string $field): DataProcessorInterface | null
+    protected function getDataProcessor(string $field): DataProcessorInterface|null
     {
         // Get the processor for the field, or default
         $processor = $this->dataProcessors[$field] ?? null;
