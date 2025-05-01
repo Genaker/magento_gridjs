@@ -15,7 +15,8 @@
 
 $fields = array_keys($block->getFieldsNames()); // array: ['id', 'order_number', ...]
 $fieldsFull = $block->getFields(); // associative array: ['id' => 'ID', ...]
-$jsonGridData = $block->getGridJsonData(); // JSON-encoded grid data
+$block->lazyLoadCollectionClass();
+//$jsonGridData = $block->getGridJsonData(); // JSON-encoded grid data
 $fieldsConfig = $block->getFieldsConfig();
 $tableName = $block->getTableName();
 $fieldsNames = $block->getFieldsNames();
@@ -80,6 +81,7 @@ $filterData = [
         if (window.dataUrl) {
             url = window.dataUrl;
         }
+        
         const urlParams = new URLSearchParams(window.location.search);
         
         // Add all current parameters to the URL
@@ -90,8 +92,10 @@ $filterData = [
         });
         
         // Add pagination parameters
-        url += (url.includes('?') ? '&' : '?') + `page=${page + 1}&pageSize=${limit}`;
-        console.log("Build Url:" + url);
+        //url += (url.includes('?') ? '&' : '?') + `page=${page + 1}&pageSize=${limit}`;
+
+        console.log("Grid Data URL:" + url);
+        
         return url;
     }
 
@@ -99,11 +103,11 @@ $filterData = [
 
     document.addEventListener('DOMContentLoaded', function() {
         // NOTE: gridData is loaded via AJAX in the server config below. inject echo jsonGridData
-        //const gridData = <?php echo $jsonGridData; ?>;
+        <?php // echo "const gridData = " . $jsonGridData . ";"; ?>
         const gridData = [];
         // Read pagination and filter state from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const defaultLimit = parseInt(urlParams.get('limit')) || 40;
+        const defaultLimit = parseInt(urlParams.get('pageSize')) || 40;
         const defaultPage = parseInt(urlParams.get('page')) || 1;
         const totalCount = 0;
         const fieldsConfig = <?php echo json_encode($fieldsConfig); ?>;
@@ -153,6 +157,11 @@ $filterData = [
                 total: totalCount, // Will be set by server response
                 server: {
                     url: (prev, page, limit) => {
+                        console.log("Pagination");
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('page', page +1);
+                        url.searchParams.set('pageSize', limit);
+                        window.history.replaceState(null, '', url.toString());
                         return buildDataUrl(page, limit);
                         
                         /*
@@ -166,8 +175,41 @@ $filterData = [
                     }
                 }
             },
+            sort: {
+                multiColumn: false,
+                server: {
+                    url: (prev, columns) => {
+                        console.log("Sort");
+                        if (!columns.length) {
+                            console.log("No columns to sort");
+                            return prev;
+                        }
+                        
+                        const col = columns[0];
+                        const dir = col.direction === 1 ? 'asc' : 'desc';
+                        
+                        // Get the field name from the column index
+                        const displayName = gridColumns[col.index].name;
+                        const fieldKey = Object.keys(fieldsNames).find(key => fieldsNames[key] === displayName);
+                        const fieldName = fieldKey;
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('sortField', fieldName);
+                        url.searchParams.set('sortOrder', dir);
+                        window.history.replaceState(null, '', url.toString());
+
+                        const page = url.searchParams.get('page') || 1;
+                        const limit = url.searchParams.get('pageSize') || defaultLimit;
+
+                        return buildDataUrl(page, limit);
+                    }
+                }
+            },
             server: {
-                url: (prev, page, limit) => buildDataUrl(page, limit),
+                url: (prev, page, limit) => {
+                    console.log("Server");
+                    return buildDataUrl(page, limit);
+                },
                 then: data => {
                     if (data.error) {
                         console.error('Error in grid data:', data.error);
@@ -202,7 +244,7 @@ $filterData = [
                     return data.total;
                 }
             },
-            sort: true,
+            //sort: true,
             search: true,
             resizable: true
         }).render(document.getElementById('wrapper'));
@@ -221,7 +263,7 @@ $filterData = [
         document.getElementById('pageSize').addEventListener('change', function() {
             const newLimit = parseInt(this.value, 10);
             const url = new URL(window.location.href);
-            url.searchParams.set('limit', newLimit);
+            url.searchParams.set('pageSize', newLimit);
             window.location.href = url.toString();
         });
 

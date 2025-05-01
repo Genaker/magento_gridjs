@@ -267,10 +267,10 @@ class GenericViewModelGrid implements ArgumentInterface
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
                     if (is_array($value)) {
-                        $collection->addFieldToFilter($field, ['IN' => $value]);
+                        $collection->addFieldToFilter($field, ['in' => $value]);
                     } else {
                         if (isset($this->fieldsConfig[$field]['element']) && $this->fieldsConfig[$field]['element'] === 'select') {
-                            $collection->addFieldToFilter($field, ['IN' => $value]);
+                            $collection->addFieldToFilter($field, ['in' => $value]);
                         } else {
                             //dd($value);
                             $collection->addFieldToFilter($field, ['like' => $value . '%']);
@@ -280,9 +280,9 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Handle pagination
-            $offset = (int)$this->request->getParam('offset', 0);
-            $limit = (int)$this->request->getParam('limit', $this->DEFAULT_LIMIT);
-            $page = $offset / $limit + 1;
+            $page = (int)$this->request->getParam('page', 1);
+            $limit = (int)$this->request->getParam('pageSize', $this->DEFAULT_LIMIT);
+            //$page = $offset / $limit + 1;
             $collection->setPageSize($limit);
             $collection->setCurPage($page);
 
@@ -622,7 +622,8 @@ class GenericViewModelGrid implements ArgumentInterface
                 }
             }
 
-            //die($select);
+            //Hard limit to optimise huge table performace
+            $select->limit(999);
 
             // Execute the query
             $count = (int)$connection->fetchOne($select);
