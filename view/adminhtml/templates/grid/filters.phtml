@@ -298,11 +298,11 @@ extract($filterData);
                         <ul>
                             ${filterHtml}
                         </ul>
-                        <p><strong>Explanation:</strong> ${result.suggestion.explanation}</p>
                         ${result.suggestion.groupByFields ? `
                             <p><strong>Group By Fields:</strong> ${result.suggestion.groupByFields}</p>
                             <p>when grouping <strong>entity_id</strong> column acts as count</p>
                         ` : ''}
+                        <p><strong>Explanation:</strong> ${result.suggestion.explanation}</p>
                         <p class="confidence-level-${result.suggestion.confidence}"><strong>Confidence:</strong> ${result.suggestion.confidence}</p>
                         <button class="action-secondary" 
                                 onclick="window.applyAiSuggestion('${result.suggestion.filterUrl}')">
