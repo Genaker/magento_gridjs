@@ -125,6 +125,27 @@ extract($filterData);
     .terminal-style[disabled]::after {
         display: none;
     }
+
+    /* Confidence level styles */
+    .confidence-level-high {
+        color: #28a745; /* Success green */
+        font-weight: bold;
+    }
+
+    .confidence-level-medium {
+        color: #ffc107; /* Warning yellow */
+        font-weight: bold;
+    }
+
+    .confidence-level-low {
+        color: #dc3545; /* Danger red */
+        font-weight: bold;
+    }
+
+    .confidence-level-unknown {
+        color: #6c757d; /* Gray */
+        font-weight: bold;
+    }
 </style>
 <div class="ai-assistant-container">
     <div class="ai-assistant-input">
@@ -273,10 +294,16 @@ extract($filterData);
                 aiResponse.innerHTML = `
                     <div style="padding: 10px;">
                         <strong>AI Assistant:</strong>
-                        <p>Based on your query, I recommend filtering by:</p>
+                        <p>Based on your query, I recommend :</p>
                         <ul>
                             ${filterHtml}
                         </ul>
+                        <p><strong>Explanation:</strong> ${result.suggestion.explanation}</p>
+                        ${result.suggestion.groupByFields ? `
+                            <p><strong>Group By Fields:</strong> ${result.suggestion.groupByFields}</p>
+                            <p>when grouping <strong>entity_id</strong> column acts as count</p>
+                        ` : ''}
+                        <p class="confidence-level-${result.suggestion.confidence}"><strong>Confidence:</strong> ${result.suggestion.confidence}</p>
                         <button class="action-secondary" 
                                 onclick="window.applyAiSuggestion('${result.suggestion.filterUrl}')">
                             Apply Suggestion
@@ -667,6 +694,7 @@ extract($filterData);
                     }
 
                     // Clear URL parameters (both array and single value formats)
+                    url.searchParams.delete(`groupByFields`);
                     url.searchParams.delete(`filter[${field}]`);
                     url.searchParams.delete(`filter[${field}][]`);
                 }

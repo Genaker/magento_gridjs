@@ -58,7 +58,10 @@ class Filter extends Action
             // Get AI response
             $aiResponse = $this->getAiResponse($query, $storeContext);
 
+            $groupByFields = json_decode($aiResponse, true)['groupByFields'];
             $urlParams = json_decode($aiResponse, true)['filterUrl'];
+            $explanation = json_decode($aiResponse, true)['explanation'];
+            $confidence = json_decode($aiResponse, true)['confidence'];
 
             // Parse AI response to get filter suggestions
             $filters = $this->parseAiResponse($aiResponse);
@@ -67,6 +70,9 @@ class Filter extends Action
                 'success' => true,
                 'suggestion' => [
                     'filterUrl' => $urlParams ?? '',
+                    'groupByFields' => $groupByFields ?? '',
+                    'explanation' => $explanation ?? '',
+                    'confidence' => $confidence ?? '',
                     'field' => $filters[0]['field'] ?? 'entity_id',
                     'value' => $filters[0]['value'] ?? $query,
                     'filters' => $filters
@@ -116,11 +122,12 @@ class Filter extends Action
                 ], JSON_PRETTY_PRINT)
                 . "\n\n8. Make sure you are having valid url for filterUrl \n\n"
                 . "8.1 add new filters to the end of the url get parameters \n\n"
+                . "8.2 add groupByFields if such is needed and allowed by the field config 'groupByField' => true, to the end of the url get parameters groupByFields=field1,field2 \n\n"
                 . "9. make sure us are using correct domain and url path from the DatAPIurl . Thanks \n\n"
                 . "9.1 url like key/gdgdgf/filter[entity_id]=value?page=1&pageSize=40 is not valid \n\n"
                 . "9.2 url like key/gdgdgf/?filter[entity_id]=value&page=1&pageSize=40 is valid \n\n"
                 . "9.3 if you have multiple filters like key/gdgdgf/?filter[entity_id]=value&filter[entity_id]=value2  make them like filter[entity_id][]=value \n\n"
-                . "\n\nResponse Format:\n{\n \"filterUrl\": url with all filter parameters,\n\"filters\": [\n        {\n            \"field\": \"field_name\",\n     \"value\": \"filter_value\",\n            \"description\": \"Optional description of the filter\"\n        }\n    ],\n    \"explanation\": \"Optional explanation of the suggested filters\",\n    \"confidence\": \"high|medium|low\",\n    \"alternative_suggestions\": [\n        {\n            \"filters\": [...],\n            \"reason\": \"Why this alternative might be useful\"\n        }\n    ]\n}\n";
+                . "\n\nResponse Format:\n{\n \"filterUrl\": url with all filter parameters,\n \"groupByFields\": \"value\", \"filters\": [\n        {\n            \"field\": \"field_name\",\n     \"value\": \"filter_value\",\n            \"description\": \"Optional description of the filter\"\n        }\n    ],\n    \"explanation\": \"Optional explanation of the suggested filters\",\n    \"confidence\": \"high|medium|low\",\n    \"alternative_suggestions\": [\n        {\n            \"filters\": [...],\n            \"reason\": \"Why this alternative might be useful\"\n        }\n    ]\n}\n";
 
             // Use AgentoAI Chat Query to get response
             $response = $this->chatQuery->getAiResponse(
@@ -188,6 +195,7 @@ class Filter extends Action
                 'description' => 'Total amount of the order'
             ],
             'customer_email' => [
+                'groupByField' => true,
                 'multiple' => false,
                 'type' => 'string',
                 'label' => 'Customer Email',

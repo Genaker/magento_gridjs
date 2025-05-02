@@ -127,6 +127,11 @@ class GenericViewModelGrid implements ArgumentInterface
     public $filters = [];
 
     /**
+     * @var array Fields to group by
+     */
+    protected $groupByFields = [];
+
+    /**
      * @var string|object|null The collection class (if using collection mode)
      */
     public string|object|null $collectionClass = null;
@@ -257,10 +262,36 @@ class GenericViewModelGrid implements ArgumentInterface
             $this->setFields($fields);
 
             // Select fields dynamically
-            $collection->addFieldToSelect($fields);
+            //$collection->addFieldToSelect($fields);
+
+            $this->setGroupByFields(explode(',', $this->request->getParam('groupByFields', '')));
 
             // Handle filters
-            $filters = $this->getFilters();
+            // $filters = $this->getFilters();
+
+            // Build the select fields with appropriate aggregation
+            $selectFields = [];
+            foreach ($fields as $field) {
+                if (in_array($field, $this->groupByFields)) {
+                    // If it's a group by field, use it as is
+                    $selectFields[$field] = $field;
+                } else {
+                    // For all other fields, use SUM by default when grouping
+                    if (!empty($this->groupByFields) && $this->strposx($field, ["total", "amount", "price", "qty", "count"]) !== false) {
+                        $selectFields[$field] = sprintf('SUM(%s) as %s', $field, $field);
+                    } elseif (!empty($this->groupByFields) && $this->strposx($field, ["entity_id"]) !== false) {
+                        //dd($field);
+                        $selectFields[$field] = sprintf('COUNT(%s) as entity_id', $field, $field);
+                    }
+                    else {
+                        // If not grouping, use the field as is
+                        $selectFields[$field] = $field;
+                    }
+                }
+            }
+
+            // Select fields dynamically
+            $collection->getSelect()->columns($selectFields);
 
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
@@ -276,9 +307,15 @@ class GenericViewModelGrid implements ArgumentInterface
                 }
             }
 
+            // Add GROUP BY clause if needed
+            if (!empty($this->groupByFields)) {
+                $collection->getSelect()->group($this->groupByFields);
+            }
+
             // Handle pagination
             $page = (int) $this->request->getParam('page', 1);
             $limit = (int) $this->request->getParam('pageSize', $this->DEFAULT_LIMIT);
+            
             // $page = $offset / $limit + 1;
             $collection->setPageSize($limit);
             $collection->setCurPage($page);
@@ -291,7 +328,7 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Log the SQL query (uncomment for debugging)
-            // dd('SQL Query: ' . $collection->getSelect()->__toString());
+            //dd('SQL Query: ' . $collection->getSelect()->__toString());
 
             return $collection->getData();
         } catch (\Exception $e) {
@@ -302,6 +339,30 @@ class GenericViewModelGrid implements ArgumentInterface
             ];
         }
     }
+
+    /**
+     * Find the position of any needle in a haystack
+     * 
+     * @param string $haystack The string to search in
+     * @param array|string $needles The needle(s) to search for
+     * @return int|false Returns the position of the first needle found, or false if none found
+     */
+    protected function strposx($haystack, $needles)
+    {
+        if (!is_array($needles)) {
+            return strpos($haystack, $needles);
+        }
+
+        foreach ($needles as $needle) {
+            $pos = strpos($haystack, $needle);
+            if ($pos !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     /**
      * Get the grid data as JSON (for AJAX/Grid.js)
@@ -414,6 +475,23 @@ class GenericViewModelGrid implements ArgumentInterface
             }
         }
         // dd($this->fieldsConfig);
+        return $this;
+    }
+
+    /**
+     * Set fields to group by checking if they exist in the fields array
+     *
+     * @param array $fields Array of field names to group by
+     * @return $this
+     */
+    public function setGroupByFields(array $fields)
+    {
+        foreach ($fields as $field) {
+            if (in_array($field, $this->fields)) {
+                $this->groupByFields[] = $field;
+            }
+        }
+
         return $this;
     }
 
@@ -603,6 +681,11 @@ class GenericViewModelGrid implements ArgumentInterface
                         $select->where($field . ' LIKE ?', $value . '%');
                     }
                 }
+            }
+
+            // Add GROUP BY clause if needed
+            if (!empty($this->groupByFields)) {
+                $select->group($this->groupByFields);
             }
 
             // Check cache first
