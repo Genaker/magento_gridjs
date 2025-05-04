@@ -58,6 +58,15 @@ class Filter extends Action
             // Get AI response
             $aiResponse = $this->getAiResponse($query, $storeContext);
 
+            $errorMessage = '';
+            if (isset($aiResponse['success']) && $aiResponse['success'] === false) {
+                if (isset($aiResponse['message'])) {
+                    $errorMessage = $aiResponse['message'];
+                }
+                throw new \Exception($errorMessage);
+            }
+
+
             $groupByFields = json_decode($aiResponse, true)['groupByFields'];
             $urlParams = json_decode($aiResponse, true)['filterUrl'];
             $explanation = json_decode($aiResponse, true)['explanation'];

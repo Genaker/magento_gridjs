@@ -259,6 +259,7 @@ class GenericViewModelGrid implements ArgumentInterface
             $collection = $this->getCollection();
 
             $fields = array_merge($fields, $this->getFields());
+            //dd($fields);
             $this->setFields($fields);
 
             // Select fields dynamically
@@ -292,6 +293,9 @@ class GenericViewModelGrid implements ArgumentInterface
 
             // Select fields dynamically
             $collection->getSelect()->columns($selectFields);
+
+            if(count($filters) === 0) $filters = $this->getFilters(); 
+            //dd($filters);
 
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
@@ -376,6 +380,8 @@ class GenericViewModelGrid implements ArgumentInterface
         $result = [];
 
         $filters = array_merge($this->request->getParam('filter', []), $filters);
+        $this->setFilters($filters);
+
         // If AJAX request, output JSON and exit
         if (strtolower($this->request->getParam('data', 'false')) === 'true') {
             try {
