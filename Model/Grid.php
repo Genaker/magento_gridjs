@@ -11,7 +11,7 @@ class Grid extends DataObject implements GridInterface
     /**
      * @inheritDoc
      */
-    public function getGridData(): array
+    public function getGridData($key = '', $index = null): array
     {
         return $this->getData('data') ?? [];
     }
@@ -27,9 +27,9 @@ class Grid extends DataObject implements GridInterface
     /**
      * @inheritDoc
      */
-    public function getData(): array
+    public function getData($key = '', $index = null): array
     {
-        return $this->getGridData();
+        return $this->getGridData($key, $index);
     }
 
     /**
