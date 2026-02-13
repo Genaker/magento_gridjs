@@ -84,7 +84,6 @@ class Data extends Action
             $fields = array_keys($this->gridBlock->getFieldsNames());  // array: ['id', 'order_number', ...]
             $fieldsFull = $this->gridBlock->getFields();  // associative array: ['id' => 'ID', ...]
             $jsonGridData = $this->gridBlock->getGridJsonData();  // JSON-encoded grid data
-            // dd($jsonGridData);
 
             // Return JSON response
             $this->getResponse()->representJson(

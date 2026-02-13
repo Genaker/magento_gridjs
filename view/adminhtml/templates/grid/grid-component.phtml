@@ -8,7 +8,7 @@
 // - Dynamic field and filter rendering
 // - AJAX data loading and server-side pagination
 // - Customizable columns and cell formatters
-// - Integration with additional HTML/JS templates (see $block->getAditionalHTML())
+// - Integration with additional HTML/JS templates (see $block->getAdditionalHTML())
 //
 // For full Grid.js documentation and advanced configuration, see:
 // https://gridjs.io/docs
@@ -20,7 +20,7 @@ $block->lazyLoadCollectionClass();
 $fieldsConfig = $block->getFieldsConfig();
 $tableName = $block->getTableName();
 $fieldsNames = $block->getFieldsNames();
-$aditionalHTML = $block->getAditionalHTML();
+$additionalHtml = $block->getAdditionalHTML();
 $fieldsHtml = $block->getFieldsHtml();
 // Get filter values from request
 $filters = $this->getRequest()->getParam('filter', []);
@@ -344,4 +344,4 @@ $filterData = [
 </style>
 
 <!-- Render any additional HTML/JS templates configured via layout XML -->
-<?= $block->getAditionalHTML() ?>
+<?= $block->getAdditionalHTML() ?>

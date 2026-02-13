@@ -60,7 +60,7 @@ Mage Grid is designed from the ground up to be **AI-first**. This means:
 - The codebase is structured for easy understanding and modification by AI coding assistants (like Cursor, GitHub Copilot, or ChatGPT).
 - Naming conventions, modularity, and documentation are optimized for AI-driven code generation and extension.
 - The grid is built to be easily extensible and customizable with minimal manual intervention, making it ideal for rapid prototyping and iterative development with AI tools.
-- Simple strait forward architecture and access to code with examples and documenttion makes it straightforward for LLMs to read, understand, and even improve your components. AI-Ready: Open code for LLMs to read, understand, and improve.
+- Simple straightforward architecture and access to code with examples and documentation makes it straightforward for LLMs to read, understand, and even improve your components. AI-Ready: Open code for LLMs to read, understand, and improve.
 
 The design of the Mage Grids makes it easy for AI tools to work with your code. Its open code and simple API allow AI models to read, understand, and generate new components.
 

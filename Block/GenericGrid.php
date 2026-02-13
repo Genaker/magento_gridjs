@@ -2,12 +2,10 @@
 
 namespace Mage\Grid\Block;
 
-use GuzzleHttp\Promise\Is;
 use Mage\Grid\ViewModel\GenericViewModelGrid;
-use Magento\Backend\Block\Template\Context as BackendContext;  // <-- use this if we need backend grid
+use Magento\Backend\Block\Template\Context as BackendContext;
 use Magento\Backend\Block\Template;
 use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\View\Element\Template\Context as FrontendContext;  // <-- use this if we need framework grid
 
 /**
  * Mage Grid GenericGrid Block
@@ -187,7 +185,7 @@ class GenericGrid extends Template
     /**
      * Lazy load the collection class
      */
-    function lazyLoadCollectionClass()
+    public function lazyLoadCollectionClass()
     {
         $this->collectionClass = $this->getData('collectionClass');
 
@@ -223,10 +221,10 @@ class GenericGrid extends Template
      *
      * @return string Rendered HTML/JS (with error messages for missing templates)
      *
-     * Usage: Place <?= $block->getAditionalHTML() ?> in your grid template.
+     * Usage: Place <?= $block->getAdditionalHTML() ?> in your grid template.
      * Configure templates via layout XML with the 'additional_html_templates' argument.
      */
-    public function getAditionalHTML()
+    public function getAdditionalHTML()
     {
         $templates = $this->getData('additional_html_templates') ?: $this->additionalHtmlTemplates;
         if (!is_array($templates)) {
@@ -239,7 +237,7 @@ class GenericGrid extends Template
                 $output .= '<div class="message message-error">Error: Additional HTML template not found: ' . htmlspecialchars($template) . '</div>';
                 continue;
             }
-            $output .= '<!-- aditional html -->' . $this->fetchView($templateFile);
+            $output .= '<!-- additional html -->' . $this->fetchView($templateFile);
         }
         return $output;
     }

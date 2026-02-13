@@ -259,7 +259,6 @@ class GenericViewModelGrid implements ArgumentInterface
             $collection = $this->getCollection();
 
             $fields = array_merge($fields, $this->getFields());
-            //dd($fields);
             $this->setFields($fields);
 
             // Select fields dynamically
@@ -281,7 +280,6 @@ class GenericViewModelGrid implements ArgumentInterface
                     if (!empty($this->groupByFields) && $this->strposx($field, ["total", "amount", "price", "qty", "count"]) !== false) {
                         $selectFields[$field] = sprintf('SUM(%s) as %s', $field, $field);
                     } elseif (!empty($this->groupByFields) && $this->strposx($field, ["entity_id"]) !== false) {
-                        //dd($field);
                         $selectFields[$field] = sprintf('COUNT(%s) as entity_id', $field, $field);
                     }
                     else {
@@ -294,8 +292,9 @@ class GenericViewModelGrid implements ArgumentInterface
             // Select fields dynamically
             $collection->getSelect()->columns($selectFields);
 
-            if(count($filters) === 0) $filters = $this->getFilters(); 
-            //dd($filters);
+            if (count($filters) === 0) {
+                $filters = $this->getFilters();
+            }
 
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
@@ -332,7 +331,6 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Log the SQL query (uncomment for debugging)
-            //dd('SQL Query: ' . $collection->getSelect()->__toString());
 
             return $collection->getData();
         } catch (\Exception $e) {
@@ -454,13 +452,12 @@ class GenericViewModelGrid implements ArgumentInterface
      *  "payment_method" => "payment_method"
      * ]
      */
-    function setFields(array $fields)
+    public function setFields(array $fields)
     {
         foreach ($fields as $key => $field) {
-            // dump($field);
             if (is_string($field)) {
                 $this->fields[$key] = $key;
-            } else if (is_array($field)) {
+            } elseif (is_array($field)) {
                 foreach ($field as $key2 => $value) {
                     if ($key2 === 'source_model') {
                         $this->fields[$key] = $key;
@@ -480,7 +477,6 @@ class GenericViewModelGrid implements ArgumentInterface
                 }
             }
         }
-        // dd($this->fieldsConfig);
         return $this;
     }
 
@@ -515,7 +511,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param string|null $sql
      * @return $this
      */
-    function setSqlQuery($sql = null)
+    public function setSqlQuery($sql = null)
     {
         $this->sqlQuery = $sql;
         return $this;
@@ -525,7 +521,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Execute the raw SQL query (for SQL mode)
      * @return array|false
      */
-    function executeSqlQuery()
+    public function executeSqlQuery()
     {
         if (!$this->sqlQuery) {
             return false;
@@ -539,7 +535,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param string|null $tableName
      * @return $this
      */
-    function setTableName(null|string $tableName)
+    public function setTableName(null|string $tableName)
     {
         $this->tableName = $tableName;
         return $this;
@@ -549,7 +545,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the table name (for SQL mode)
      * @return string|null
      */
-    function getTableName()
+    public function getTableName()
     {
         return $this->tableName;
     }
@@ -558,12 +554,12 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the configured fields
      * @return array
      */
-    function getFields()
+    public function getFields()
     {
         return $this->fields;
     }
 
-    function getFieldsConfig()
+    public function getFieldsConfig()
     {
         return $this->fieldsConfig;
     }
@@ -573,12 +569,12 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param array $fields
      * @return $this
      */
-    function setFieldsNames(array $fields)
+    public function setFieldsNames(array $fields)
     {
         foreach ($fields as $key => $field) {
             if (is_string($field)) {
                 $this->fieldsNames[$key] = $field;
-            } else if (is_array($field)) {
+            } elseif (is_array($field)) {
                 $this->fieldsNames[$key] = $field['label'];
             }
         }
@@ -589,7 +585,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the field labels (for display)
      * @return array
      */
-    function getFieldsNames()
+    public function getFieldsNames()
     {
         return $this->fieldsNames;
     }
@@ -599,7 +595,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param array $filters
      * @return $this
      */
-    function setFilters(array $filters)
+    public function setFilters(array $filters)
     {
         $this->filters = $filters;
         return $this;
@@ -609,7 +605,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the current filters (merged from request and internal state)
      * @return array
      */
-    function getFilters()
+    public function getFilters()
     {
         // Handle filters from request and internal state
         $filters = $this->request->getParam('filter', []);
@@ -629,7 +625,7 @@ class GenericViewModelGrid implements ArgumentInterface
                 if ($this->collectionClass !== null) {
                     if (is_string($this->collectionClass)) {
                         $this->collection = $this->objectManager->create($this->collectionClass);
-                    } else if (is_object($this->collectionClass)) {
+                    } elseif (is_object($this->collectionClass)) {
                         $this->collection = $this->collectionClass;
                     } else {
                         throw new \Exception('Grid Collection class issue: collectionClass parameter is not a string or object');
