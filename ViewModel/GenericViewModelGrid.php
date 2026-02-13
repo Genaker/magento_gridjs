@@ -259,7 +259,6 @@ class GenericViewModelGrid implements ArgumentInterface
             $collection = $this->getCollection();
 
             $fields = array_merge($fields, $this->getFields());
-            //dd($fields);
             $this->setFields($fields);
 
             // Select fields dynamically
@@ -281,7 +280,6 @@ class GenericViewModelGrid implements ArgumentInterface
                     if (!empty($this->groupByFields) && $this->strposx($field, ["total", "amount", "price", "qty", "count"]) !== false) {
                         $selectFields[$field] = sprintf('SUM(%s) as %s', $field, $field);
                     } elseif (!empty($this->groupByFields) && $this->strposx($field, ["entity_id"]) !== false) {
-                        //dd($field);
                         $selectFields[$field] = sprintf('COUNT(%s) as entity_id', $field, $field);
                     }
                     else {
@@ -295,7 +293,6 @@ class GenericViewModelGrid implements ArgumentInterface
             $collection->getSelect()->columns($selectFields);
 
             if(count($filters) === 0) $filters = $this->getFilters(); 
-            //dd($filters);
 
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
@@ -332,7 +329,6 @@ class GenericViewModelGrid implements ArgumentInterface
             }
 
             // Log the SQL query (uncomment for debugging)
-            //dd('SQL Query: ' . $collection->getSelect()->__toString());
 
             return $collection->getData();
         } catch (\Exception $e) {
@@ -459,7 +455,7 @@ class GenericViewModelGrid implements ArgumentInterface
         foreach ($fields as $key => $field) {
             if (is_string($field)) {
                 $this->fields[$key] = $key;
-            } else if (is_array($field)) {
+            } elseif (is_array($field)) {
                 foreach ($field as $key2 => $value) {
                     if ($key2 === 'source_model') {
                         $this->fields[$key] = $key;
@@ -479,7 +475,6 @@ class GenericViewModelGrid implements ArgumentInterface
                 }
             }
         }
-        // dd($this->fieldsConfig);
         return $this;
     }
 
@@ -577,7 +572,7 @@ class GenericViewModelGrid implements ArgumentInterface
         foreach ($fields as $key => $field) {
             if (is_string($field)) {
                 $this->fieldsNames[$key] = $field;
-            } else if (is_array($field)) {
+            } elseif (is_array($field)) {
                 $this->fieldsNames[$key] = $field['label'];
             }
         }
@@ -628,7 +623,7 @@ class GenericViewModelGrid implements ArgumentInterface
                 if ($this->collectionClass !== null) {
                     if (is_string($this->collectionClass)) {
                         $this->collection = $this->objectManager->create($this->collectionClass);
-                    } else if (is_object($this->collectionClass)) {
+                    } elseif (is_object($this->collectionClass)) {
                         $this->collection = $this->collectionClass;
                     } else {
                         throw new \Exception('Grid Collection class issue: collectionClass parameter is not a string or object');

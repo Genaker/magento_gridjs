@@ -31,7 +31,6 @@ class Filter extends Action
 
     public function execute(): ResultInterface
     {
-        // dd($this->getRequest()->getParams());
         try {
             $query = $this->getRequest()->getParam('query');
             if (!$query) {
