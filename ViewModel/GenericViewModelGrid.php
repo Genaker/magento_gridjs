@@ -454,10 +454,9 @@ class GenericViewModelGrid implements ArgumentInterface
      *  "payment_method" => "payment_method"
      * ]
      */
-    function setFields(array $fields)
+    public function setFields(array $fields)
     {
         foreach ($fields as $key => $field) {
-            // dump($field);
             if (is_string($field)) {
                 $this->fields[$key] = $key;
             } else if (is_array($field)) {
@@ -515,7 +514,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param string|null $sql
      * @return $this
      */
-    function setSqlQuery($sql = null)
+    public function setSqlQuery($sql = null)
     {
         $this->sqlQuery = $sql;
         return $this;
@@ -525,7 +524,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Execute the raw SQL query (for SQL mode)
      * @return array|false
      */
-    function executeSqlQuery()
+    public function executeSqlQuery()
     {
         if (!$this->sqlQuery) {
             return false;
@@ -539,7 +538,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param string|null $tableName
      * @return $this
      */
-    function setTableName(null|string $tableName)
+    public function setTableName(null|string $tableName)
     {
         $this->tableName = $tableName;
         return $this;
@@ -549,7 +548,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the table name (for SQL mode)
      * @return string|null
      */
-    function getTableName()
+    public function getTableName()
     {
         return $this->tableName;
     }
@@ -558,12 +557,12 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the configured fields
      * @return array
      */
-    function getFields()
+    public function getFields()
     {
         return $this->fields;
     }
 
-    function getFieldsConfig()
+    public function getFieldsConfig()
     {
         return $this->fieldsConfig;
     }
@@ -573,7 +572,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param array $fields
      * @return $this
      */
-    function setFieldsNames(array $fields)
+    public function setFieldsNames(array $fields)
     {
         foreach ($fields as $key => $field) {
             if (is_string($field)) {
@@ -589,7 +588,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the field labels (for display)
      * @return array
      */
-    function getFieldsNames()
+    public function getFieldsNames()
     {
         return $this->fieldsNames;
     }
@@ -599,7 +598,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * @param array $filters
      * @return $this
      */
-    function setFilters(array $filters)
+    public function setFilters(array $filters)
     {
         $this->filters = $filters;
         return $this;
@@ -609,7 +608,7 @@ class GenericViewModelGrid implements ArgumentInterface
      * Get the current filters (merged from request and internal state)
      * @return array
      */
-    function getFilters()
+    public function getFilters()
     {
         // Handle filters from request and internal state
         $filters = $this->request->getParam('filter', []);

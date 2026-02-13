@@ -185,7 +185,7 @@ class GenericGrid extends Template
     /**
      * Lazy load the collection class
      */
-    function lazyLoadCollectionClass()
+    public function lazyLoadCollectionClass()
     {
         $this->collectionClass = $this->getData('collectionClass');
 
