@@ -292,7 +292,9 @@ class GenericViewModelGrid implements ArgumentInterface
             // Select fields dynamically
             $collection->getSelect()->columns($selectFields);
 
-            if(count($filters) === 0) $filters = $this->getFilters(); 
+            if (count($filters) === 0) {
+                $filters = $this->getFilters();
+            }
 
             foreach ($filters as $field => $value) {
                 if (in_array($field, $fields)) {
